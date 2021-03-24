@@ -58,7 +58,9 @@ inline void setColor (int);
 
 inline int realRand ();
 
-#define drawScore(); {setColor(3); setCursor(30, 19); printf("score: %d", score);}
+#define drawScore(); {setColor(3); setCursor(31, 19); printf("score:    %d", score);}
+#define drawInter(); {setColor(3); setCursor(31, 21); printf("Interval: %d", interval);}
+#define drawData();  {drawScore(); drawInter();}
 #define drawBlock() printf("■")
 #define drawSpace() printf("  ")
 inline void drawWelcome ();
@@ -70,7 +72,7 @@ inline bool placeJudge (int, int, int);
 
 bool vis[28][16];
 
-int score, top = 25, nowx, nowy = 5, steins, kurisu;
+int score, top = 25, nowx, nowy = 5, steins, kurisu, interval=300;
 
 signed main () {
     drawWelcome();
@@ -83,7 +85,7 @@ signed main () {
     drawTetris(kurisu, 5, 16, false);
     drawTetris(steins, nowx, nowy, false);
 
-    register int interval = 300, timer = 0;
+    register int timer = 0;
 
     while (true) {
         if (timer>=interval) {
@@ -94,19 +96,17 @@ signed main () {
             } else {
                 register int tmpx, tmpy;
                 for (register int i = 0; i ^ 4; ++ i) {
-                    tmpx = nowx + dMap[steins][i << 1];
-                    tmpy = nowy + dMap[steins][i << 1 | 1];
+                    tmpx = nowx + dMap[steins][i<<1];
+                    tmpy = nowy + dMap[steins][i<<1|1];
                     setCursor((tmpy + 1) << 1, tmpx + 1);
                     setColor(0); drawBlock();
                     vis[tmpx][tmpy] = true;
                 } top = top > nowx ? nowx : top;
 
                 register bool flag = true;
-                for (register int i = nowx; i < nowx + high[steins]; ++i, flag = true) {
-                    for (register int j = 0; j ^ 13; ++j) {
-                        if (!vis[i][j]) {
-                            flag = false; break;
-                        }
+                for (register int i = nowx; i < nowx + high[steins]; ++ i, flag = true) {
+                    for (register int j=0; j^13; ++ j) {
+                        if (!vis[i][j]) {flag = false; break;}
                     }
                     if (flag) {
                         for (register int j = i; j >= top; --j) {
@@ -116,8 +116,7 @@ signed main () {
                                 if (vis[j][k]) drawBlock();
                                 else drawSpace();
                             }
-                        }
-                        score += 1; interval *= 0.95; drawScore();
+                        } score += 1; interval *= 0.95; drawData();
                     }
                 }
 
@@ -209,8 +208,7 @@ inline void drawUI () {
         setCursor(maxl+22, i); printf("##"); //drawBlock();
     }
 
-    setColor(3); drawScore();
-    setColor(3); setCursor(30, 21); printf("Speed: ");
+    drawScore(); drawInter();
     setColor(3); setCursor(32, 2);  printf("Next: ");
 }
 
