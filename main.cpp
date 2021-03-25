@@ -1,3 +1,11 @@
+/*
+ * Tetris Console
+ * First Issue: 2021/02/04
+ * Copyright: Ellias Kiri Stuart
+ * Licence: MIT
+ * GitHub: https://github.com/novaELLIAS/TetrisConsole
+ */
+
 #pragma GCC optimize ("Ofast", 3)
 #pragma GCC target ("sse3","sse2","sse")
 #pragma GCC target ("avx","sse4","sse4.1","sse4.2","ssse3")
@@ -9,10 +17,10 @@
 
 using namespace std;
 
-#define a1  0
-#define a2  1
+#define a1 0
+#define a2 1
 
-#define b 2
+#define b1 2
 
 #define c1 3
 #define c2 4
@@ -30,22 +38,37 @@ using namespace std;
 #define f1 13
 #define f2 14
 
+#define g1 15
+
+#define h1 16
+#define h2 17
+#define h3 18
+#define h4 19
+
+#define k1 20
+#define k2 21
+
+#define m1 22
+#define m2 23
+
 #define PRE 224
 #define UP  72
 #define LT  75
 #define RT  77
 #define DW  80
 
-const int dMap[15][9] = {
+const int dMap[24][9] = {
         {0, 0, 1, 0, 2, 0, 3, 0, 4}, {0, 0, 0, 1, 0, 2, 0, 3, 1},
         {0, 0, 1, 0, 0, 1, 1, 1, 2},
         {0, 0, 1, 0, 1, 1, 1, 2, 2}, {0, 1, 1, 1, 2, 0, 2, 1, 3}, {0, 0, 0, 1, 0, 2, 1, 2, 2}, {0, 0, 0, 1, 1, 0, 2, 0, 3},
         {1, 0, 1, 1, 1, 2, 0, 2, 2}, {0, 0, 0, 1, 1, 1, 2, 1, 3}, {0, 0, 0, 1, 0, 2, 1, 0, 2}, {0, 0, 1, 0, 2, 0, 2, 1, 3},
         {0, 0, 0, 1, 1, 1, 1, 2, 2}, {0, 1, 1, 0, 1, 1, 2, 0, 3},
-        {0, 1, 0, 2, 1, 0, 1, 1, 2}, {0, 0, 1, 0, 1, 1, 2, 1, 3}
+        {0, 1, 0, 2, 1, 0, 1, 1, 2}, {0, 0, 1, 0, 1, 1, 2, 1, 3},
+        {0, 0, 0, 0, 0, 0, 0, 0, 1},
+        {0, 0, 0, 1, 1, 0, 0, 0, 2}, {0, 0, 0, 0, 1, 0, 1, 1, 2}, {0, 0, 0, 0, 1, 0, 1,-1, 2}, {0, 0, 0, 0, 0,-1, 1, 0, 2},
+        {0, 0, 0, 0, 0, 1, 0, 2, 1}, {0, 0, 0, 0, 1, 0, 2, 0, 3},
+        {0, 0, 0, 0, 1, 0, 1, 0, 2}, {0, 0, 0, 0, 0, 1, 0, 1, 1}
 };
-
-//const int high[15] = {4, 1, 2, 2, 3, 2, 3, 2, 3, 2, 3, 2, 3, 2, 3};
 
 #define maxl 24
 #define maxh 26
@@ -58,10 +81,12 @@ inline void isCursorDisplay(bool);
 inline void setColor (int);
 
 inline int realRand ();
+inline int qpow (int, int);
 
-#define drawScore(); {setColor(3); setCursor(31, 19); printf("Score:    %d", score);}
-#define drawInter(); {setColor(3); setCursor(31, 21); printf("Interval: %d", interval);}
-#define drawData();  {drawScore(); drawInter();}
+#define drawCntDn(); {setColor(3); setCursor(31, 17); printf("cntDwn:  %5d", cntDown);}
+#define drawScore(); {setColor(3); setCursor(31, 19); printf("Score:   %5d", score);}
+#define drawInter(); {setColor(3); setCursor(31, 21); printf("Interval:%5d", interval);}
+#define drawData();  {drawScore(); drawInter(); drawCntDn();}
 #define drawBlock() printf("■")
 #define drawSpace() printf("  ")
 inline void drawWelcome ();
@@ -74,15 +99,16 @@ inline bool placeJudge (int, int, int);
 
 bool vis[28][16];
 
-int score, top = 25, nowx, nowy = 5, steins, kurisu, interval=300;
+int score, top = 25, nowx, nowy = 5, steins, kurisu, interval=300, cntDown=1;
 
 signed main () {
     drawWelcome();
     drawUI();
 
     srand(time(NULL));
-    steins = (rand() + 15) % 15;
-    kurisu = (rand() + 15) % 15;
+    do steins = (rand() + 24) % 24;
+    while (steins>=11 && steins<=14);
+    kurisu = (rand() + 24) % 24;
 
     drawTetris(kurisu, 5, 16, false);
     drawTetris(steins, nowx, nowy, false);
@@ -94,11 +120,14 @@ signed main () {
 
     while (true) {
         if (timer>=interval) {
-            timer = 0; EVANGELION:
+            timer = 0; score += log(cntDown); cntDown = 1; drawData();
+            DROPTEST:
             if (placeJudge(steins, nowx + 1, nowy)) {
                 drawTetris(steins, nowx ++, nowy, true);
                 drawTetris(steins, nowx, nowy, false);
+                if (!placeJudge(steins, nowx + 1, nowy)) goto BLOCKFREEZE;
             } else {
+                BLOCKFREEZE:
                 register int tmpx, tmpy;
                 for (register int i = 0; i ^ 4; ++ i) {
                     tmpx = nowx + dMap[steins][i<<1];
@@ -108,24 +137,33 @@ signed main () {
                     vis[tmpx][tmpy] = true;
                 } top = top > nowx ? nowx : top;
 
-                register bool flag = true;
-                for (register int i = nowx; i < nowx + dMap[steins][8]; ++ i, flag = true) {
+                register bool tflag = false, flag; register int clrCnt = 0;
+                for (register int i=nowx; i < nowx+dMap[steins][8]; ++ i, flag=true) {
                     for (register int j=0; j^13; ++ j) {
-                        if (!vis[i][j]) {flag = false; break;}
-                    }
-                    if (flag) {
-                        for (register int j = i; j >= top; --j) {
-                            for (register int k = 0; k ^ 13; ++k) {
+                        if (!vis[i][j]) {
+                            if (clrCnt) {
+                                score += (300-(int)(interval*0.85)) << clrCnt;
+                                drawScore();
+                            } flag = clrCnt = 0; break;
+                        }
+                    } if (flag) {
+                        clrCnt += (tflag = true);
+                        for (register int j = i; j >= top; -- j) {
+                            for (register int k = 0; k ^ 13; ++ k) {
                                 vis[j][k] = vis[j - 1][k];
                                 setCursor((k + 1) << 1, j + 1);
                                 if (vis[j][k]) drawBlock();
                                 else drawSpace();
                             }
-                        } interval *= 0.8; score += (300-interval); drawData();
+                        }
                     }
+                } if (tflag) {
+                    interval = (int)(interval * 0.85);
+                    if (clrCnt) score += (300 - interval) << clrCnt;
+                    drawData();
                 }
 
-                steins = kurisu; kurisu = (rand() + 15) % 15;
+                steins = kurisu; kurisu = (rand() + 24) % 24;
                 drawTetris(steins, 5, 16, true);
                 drawTetris(kurisu, 5, 16, false);
                 nowx = 0, nowy = 5;
@@ -146,6 +184,7 @@ signed main () {
             register int key = _getch();
             switch(key) {
                 case UP:
+                    cntDown = 1; score += log(cntDown); drawData();
                     if (placeJudge(rotate(steins), nowx, nowy)) {
                         drawTetris(steins, nowx, nowy, true);
                         steins = rotate(steins);
@@ -153,12 +192,14 @@ signed main () {
                         drawTetris(steins, nowx, nowy, false);
                     } break;
                 case LT:
+                    cntDown = 1; score += log(cntDown); drawData();
                     if (placeJudge(steins, nowx, nowy-1)) {
                         drawTetris(steins, nowx, nowy --, true);
                         drawPrediction(steins, true);
                         drawTetris(steins, nowx, nowy, false);
                     } break;
                 case RT:
+                    cntDown = 1; score += log(cntDown); drawData();
                     if (placeJudge(steins, nowx, nowy+1)) {
                         drawTetris(steins, nowx, nowy ++, true);
                         drawPrediction(steins, true);
@@ -168,9 +209,9 @@ signed main () {
                     if (placeJudge(steins, nowx+1, nowy)) {
                         drawTetris(steins, nowx ++, nowy, true);
                         drawTetris(steins, nowx, nowy, false);
-                        score ++; drawScore();
-                        goto EVANGELION;
-                    } break;
+                        ++ cntDown; drawData();
+                        goto DROPTEST;
+                    } goto BLOCKFREEZE; break;
             }
         } Sleep(1); ++ timer;
     } system("pause"); return 0;
@@ -196,7 +237,7 @@ inline void drawPrediction (int name, bool isClr) {
         drawSpace();
     }
 
-    register int x = nowx, y = nowy;
+    register int x = nowx - 1, y = nowy;
     while (placeJudge(name, ++ x, y)); x --;
 
     for (register int i=0; i^4; ++ i) {
@@ -247,7 +288,7 @@ inline int rotate (int name) {
         case a1: return a2;
         case a2: return a1;
 
-        case b: return b;
+        case b1: return b1;
 
         case c1: return c2;
         case c2: return c3;
@@ -264,6 +305,19 @@ inline int rotate (int name) {
 
         case f1: return f2;
         case f2: return f1;
+
+        case g1: return g1;
+
+        case h1: return h2;
+        case h2: return h3;
+        case h3: return h4;
+        case h4: return h1;
+
+        case k1: return k2;
+        case k2: return k1;
+
+        case m1: return m2;
+        case m2: return m1;
     } return -1;
 }
 
@@ -288,4 +342,12 @@ inline void isCursorDisplay(bool flag) {
     GetConsoleCursorInfo(handle, &CursorInfo);
     CursorInfo.bVisible = flag;
     SetConsoleCursorInfo(handle, &CursorInfo);
+}
+
+inline int qpow (int a, int t) {
+    register int base = a, ret = 1;
+    while (t) {
+        if (t&1) ret = ret * base;
+        base = base * base, t >>= 1;
+    } return ret;
 }
