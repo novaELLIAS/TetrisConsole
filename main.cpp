@@ -58,7 +58,7 @@ inline void setColor (int);
 
 inline int realRand ();
 
-#define drawScore(); {setColor(3); setCursor(31, 19); printf("score:    %d", score);}
+#define drawScore(); {setColor(3); setCursor(31, 19); printf("Score:    %d", score);}
 #define drawInter(); {setColor(3); setCursor(31, 21); printf("Interval: %d", interval);}
 #define drawData();  {drawScore(); drawInter();}
 #define drawBlock() printf("■")
@@ -116,7 +116,7 @@ signed main () {
                                 if (vis[j][k]) drawBlock();
                                 else drawSpace();
                             }
-                        } score += 1; interval *= 0.95; drawData();
+                        } interval *= 0.8; score += (300-interval); drawData();
                     }
                 }
 
@@ -158,13 +158,11 @@ signed main () {
                     if (placeJudge(steins, nowx+1, nowy)) {
                         drawTetris(steins, nowx ++, nowy, true);
                         drawTetris(steins, nowx, nowy, false);
+                        score ++; drawScore();
                         goto EVANGELION;
                     } break;
             }
-        }
-
-        Sleep(1); ++ timer;
-
+        } Sleep(1); ++ timer;
     } system("pause"); return 0;
 }
 
