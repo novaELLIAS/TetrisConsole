@@ -54,6 +54,7 @@ unsigned int seed = 19260817;
 
 inline int rotate (int);
 #define setCursor(x,y); {COORD tmpSC; tmpSC.X=x, tmpSC.Y=y; SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), tmpSC);}
+inline void isCursorDisplay(bool);
 inline void setColor (int);
 
 inline int realRand ();
@@ -88,6 +89,8 @@ signed main () {
     drawPrediction(steins, false);
 
     register int timer = 0;
+
+    isCursorDisplay(false);
 
     while (true) {
         if (timer>=interval) {
@@ -131,6 +134,7 @@ signed main () {
 
                 if (!placeJudge(steins, nowx, nowy)) {
                     system("cls");
+                    isCursorDisplay(true);
                     puts("Game Over");
                     printf("Your score is: %d.\n", score);
                     break;
@@ -276,4 +280,12 @@ inline void setColor (int color) {
 inline int realRand () {
     seed^=seed<<17, seed^=seed>>5, seed^=seed<<23;
     return seed;
+}
+
+inline void isCursorDisplay(bool flag) {
+    HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_CURSOR_INFO CursorInfo;
+    GetConsoleCursorInfo(handle, &CursorInfo);
+    CursorInfo.bVisible = flag;
+    SetConsoleCursorInfo(handle, &CursorInfo);
 }
