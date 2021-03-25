@@ -36,16 +36,16 @@ using namespace std;
 #define RT  77
 #define DW  80
 
-const int dMap[15][8] = {
-        {0, 0, 1, 0, 2, 0, 3, 0}, {0, 0, 0, 1, 0, 2, 0, 3},
-        {0, 0, 1, 0, 0, 1, 1, 1},
-        {0, 0, 1, 0, 1, 1, 1, 2}, {0, 1, 1, 1, 2, 0, 2, 1}, {0, 0, 0, 1, 0, 2, 1, 2}, {0, 0, 0, 1, 1, 0, 2, 0},
-        {1, 0, 1, 1, 1, 2, 0, 2}, {0, 0, 0, 1, 1, 1, 2, 1}, {0, 0, 0, 1, 0, 2, 1, 0}, {0, 0, 1, 0, 2, 0, 2, 1},
-        {0, 0, 0, 1, 1, 1, 1, 2}, {0, 1, 1, 0, 1, 1, 2, 0},
-        {0, 1, 0, 2, 1, 0, 1, 1}, {0, 0, 1, 0, 1, 1, 2, 1}
+const int dMap[15][9] = {
+        {0, 0, 1, 0, 2, 0, 3, 0, 4}, {0, 0, 0, 1, 0, 2, 0, 3, 1},
+        {0, 0, 1, 0, 0, 1, 1, 1, 2},
+        {0, 0, 1, 0, 1, 1, 1, 2, 2}, {0, 1, 1, 1, 2, 0, 2, 1, 3}, {0, 0, 0, 1, 0, 2, 1, 2, 2}, {0, 0, 0, 1, 1, 0, 2, 0, 3},
+        {1, 0, 1, 1, 1, 2, 0, 2, 2}, {0, 0, 0, 1, 1, 1, 2, 1, 3}, {0, 0, 0, 1, 0, 2, 1, 0, 2}, {0, 0, 1, 0, 2, 0, 2, 1, 3},
+        {0, 0, 0, 1, 1, 1, 1, 2, 2}, {0, 1, 1, 0, 1, 1, 2, 0, 3},
+        {0, 1, 0, 2, 1, 0, 1, 1, 2}, {0, 0, 1, 0, 1, 1, 2, 1, 3}
 };
 
-const int high[15] = {4, 1, 2, 2, 3, 2, 3, 2, 3, 2, 3, 2, 3, 2, 3};
+//const int high[15] = {4, 1, 2, 2, 3, 2, 3, 2, 3, 2, 3, 2, 3, 2, 3};
 
 #define maxl 24
 #define maxh 26
@@ -66,6 +66,7 @@ inline int realRand ();
 inline void drawWelcome ();
 inline void drawUI ();
 inline void drawTetris (int, int, int, bool);
+inline void drawPrediction (int, bool);
 
 #define placeLegal() ((~tmpx)&&(tmpx<25)&&(~tmpy)&&(tmpy<13)&&!vis[tmpx][tmpy])
 inline bool placeJudge (int, int, int);
@@ -84,6 +85,7 @@ signed main () {
 
     drawTetris(kurisu, 5, 16, false);
     drawTetris(steins, nowx, nowy, false);
+    drawPrediction(steins, false);
 
     register int timer = 0;
 
@@ -104,7 +106,7 @@ signed main () {
                 } top = top > nowx ? nowx : top;
 
                 register bool flag = true;
-                for (register int i = nowx; i < nowx + high[steins]; ++ i, flag = true) {
+                for (register int i = nowx; i < nowx + dMap[steins][8]; ++ i, flag = true) {
                     for (register int j=0; j^13; ++ j) {
                         if (!vis[i][j]) {flag = false; break;}
                     }
@@ -124,6 +126,7 @@ signed main () {
                 drawTetris(steins, 5, 16, true);
                 drawTetris(kurisu, 5, 16, false);
                 nowx = 0, nowy = 5;
+                drawPrediction(steins, false);
                 drawTetris(steins, nowx, nowy, false);
 
                 if (!placeJudge(steins, nowx, nowy)) {
@@ -142,16 +145,19 @@ signed main () {
                     if (placeJudge(rotate(steins), nowx, nowy)) {
                         drawTetris(steins, nowx, nowy, true);
                         steins = rotate(steins);
+                        drawPrediction(steins, true);
                         drawTetris(steins, nowx, nowy, false);
                     } break;
                 case LT:
                     if (placeJudge(steins, nowx, nowy-1)) {
                         drawTetris(steins, nowx, nowy --, true);
+                        drawPrediction(steins, true);
                         drawTetris(steins, nowx, nowy, false);
                     } break;
                 case RT:
                     if (placeJudge(steins, nowx, nowy+1)) {
                         drawTetris(steins, nowx, nowy ++, true);
+                        drawPrediction(steins, true);
                         drawTetris(steins, nowx, nowy, false);
                     } break;
                 case DW:
@@ -173,6 +179,28 @@ inline bool placeJudge (int name, int x, int y) {
         tmpy = y + dMap[name][i<<1|1];
         if(!placeLegal()) return false;
     } return true;
+}
+
+int preName = -1, prex, prey;
+
+inline void drawPrediction (int name, bool isClr) {
+    register int tmpx, tmpy;
+    if (isClr) for (register int i=0; i^4; ++ i) {
+        tmpx = prex + dMap[preName][i<<1];
+        tmpy = prey + dMap[preName][i<<1|1];
+        setCursor((tmpy+1)<<1, tmpx+1);
+        drawSpace();
+    }
+
+    register int x = nowx, y = nowy;
+    while (placeJudge(name, ++ x, y)); x --;
+
+    for (register int i=0; i^4; ++ i) {
+        tmpx = x + dMap[name][i<<1];
+        tmpy = y + dMap[name][i<<1|1];
+        setCursor((tmpy+1)<<1, tmpx+1);
+        setColor(i+1); printf("□");
+    } prex = x, prey = y, preName = name;
 }
 
 inline void drawTetris (int name, int x, int y, bool re) {
@@ -232,7 +260,7 @@ inline int rotate (int name) {
 
         case f1: return f2;
         case f2: return f1;
-    }
+    } return -1;
 }
 
 inline void setColor (int color) {
