@@ -56,6 +56,7 @@ using namespace std;
 #define LT  75
 #define RT  77
 #define DW  80
+#define SP  32
 
 const int dMap[24][9] = {
         {0, 0, 1, 0, 2, 0, 3, 0, 4}, {0, 0, 0, 1, 0, 2, 0, 3, 1},
@@ -83,9 +84,14 @@ inline void setColor (int);
 inline int realRand ();
 inline int qpow (int, int);
 
-#define drawCntDn(); {setColor(3); setCursor(31, 17); printf("cntDwn:  %5d", cntDown);}
-#define drawScore(); {setColor(3); setCursor(31, 19); printf("Score:   %5d", score);}
-#define drawInter(); {setColor(3); setCursor(31, 21); printf("Interval:%5d", interval);}
+inline void drawDataInt (int, int);
+inline void drawScore ();
+
+//#define drawCntDn(); {setColor(3); setCursor(30, 15); cout<<setw(16)<<setiosflags(ios::internal)<<cntDown;}
+//#define drawScore(); {setColor(3); setCursor(30, 19); printf("%m16d", score);}
+//#define drawInter(); {setColor(3); setCursor(30, 23); printf("%m16d", 301-interval);}
+#define drawCntDn(); {drawDataInt(cntDown, 15);}
+#define drawInter(); {drawDataInt(301-interval, 23);}
 #define drawData();  {drawScore(); drawInter(); drawCntDn();}
 #define drawBlock() printf("■")
 #define drawSpace() printf("  ")
@@ -99,7 +105,7 @@ inline bool placeJudge (int, int, int);
 
 bool vis[28][16];
 
-int score, top = 25, nowx, nowy = 5, steins, kurisu, interval=300, cntDown=1;
+int score, top = 25, nowx, nowy = 5, steins, kurisu, interval=300, cntDown=1, chBase=1;
 
 signed main () {
     drawWelcome();
@@ -117,6 +123,7 @@ signed main () {
     register int timer = 0;
 
     isCursorDisplay(false);
+    drawData();
 
     while (true) {
         if (timer>=interval) {
@@ -180,11 +187,24 @@ signed main () {
             }
         }
 
-        if(_kbhit() && !(_getch()^PRE)) {
-            register int key = _getch();
+        register int key;
+        if(_kbhit()) if((key=_getch()) ^ PRE) {
+            if (!(key ^ SP) && placeJudge(kurisu, nowx, nowy)) {
+                drawTetris(steins, nowx, nowy, true);
+                drawTetris(kurisu, 5, 16, true);
+                steins^kurisu? (steins^=kurisu^=steins^=kurisu):0;
+                drawPrediction(steins, true);
+                drawTetris(steins, nowx, nowy, false);
+                drawTetris(kurisu, 5, 16, false);
+                interval = (int)(interval * 0.95);
+                score += log(cntDown) - (chBase<<=1); cntDown = 1;
+                interval = (int)(interval * 0.99); drawData();
+            }
+        } else {
+            key = _getch();
             switch(key) {
                 case UP:
-                    cntDown = 1; score += log(cntDown); drawData();
+                    score += log(cntDown); cntDown = 1; drawData();
                     if (placeJudge(rotate(steins), nowx, nowy)) {
                         drawTetris(steins, nowx, nowy, true);
                         steins = rotate(steins);
@@ -192,14 +212,14 @@ signed main () {
                         drawTetris(steins, nowx, nowy, false);
                     } break;
                 case LT:
-                    cntDown = 1; score += log(cntDown); drawData();
+                    score += log(cntDown); cntDown = 1; drawData();
                     if (placeJudge(steins, nowx, nowy-1)) {
                         drawTetris(steins, nowx, nowy --, true);
                         drawPrediction(steins, true);
                         drawTetris(steins, nowx, nowy, false);
                     } break;
                 case RT:
-                    cntDown = 1; score += log(cntDown); drawData();
+                    score += log(cntDown); cntDown = 1; drawData();
                     if (placeJudge(steins, nowx, nowy+1)) {
                         drawTetris(steins, nowx, nowy ++, true);
                         drawPrediction(steins, true);
@@ -224,6 +244,31 @@ inline bool placeJudge (int name, int x, int y) {
         tmpy = y + dMap[name][i<<1|1];
         if(!placeLegal()) return false;
     } return true;
+}
+
+inline void drawDataInt (int num, int y) {
+    setCursor(30, y);
+    for (register int i=0; i^16; ++ i) putchar(' ');
+    register int cnt = 0, a = num;
+    setColor(3); setCursor(30, y);
+    while (a /= 10) ++ cnt;
+    cnt = (16-cnt) >> 1;
+    while (cnt --) putchar(' ');
+    printf("%d", num);
+}
+
+inline void drawScore () {
+    setCursor(30, 19);
+    for (register int i=0; i^16; ++ i) putchar(' ');
+    static char cMap[4] = {0, 'K', 'M', 'G'};
+    register int cnt = 0, a = score, cPos = 0;
+    if (a<0) a = -a, ++ cnt;
+    setColor(3); setCursor(30, 19);
+    while (a /= 10) ++ cnt; a = score;
+    while (cnt>14) cnt -= 2, a /= 1000, ++ cPos;
+    cnt = (16-cnt) >> 1;
+    while (cnt --) putchar(' ');
+    printf("%d%c", score, cMap[cPos]);
 }
 
 int preName = -1, prex, prey;
@@ -280,7 +325,10 @@ inline void drawUI () {
     }
 
     drawScore(); drawInter();
-    setColor(3); setCursor(32, 2);  printf("Next: ");
+    setColor(3); setCursor(36, 2);  printf("NEXT");
+    setColor(3); setCursor(32, 13); printf("Down Counter");
+    setColor(3); setCursor(35, 17); printf("nScore");
+    setColor(3); setCursor(35, 21); printf("nSpeed");
 }
 
 inline int rotate (int name) {
