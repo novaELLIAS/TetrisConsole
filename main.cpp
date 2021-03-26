@@ -77,7 +77,7 @@ const int dMapOrigin[24][9] = {
 
 int height[24] = {4, 1, 2, 2, 3, 2, 3, 2, 3, 2, 3, 2, 3, 2, 3, 1, 2, 2, 2, 2, 1, 3, 2, 1};
 
-vector <pair<int, int> > dMap[24] = {
+const vector <pair<int, int> > dMap[24] = {
 
     {MP(0, 0), MP(1, 0), MP(2, 0), MP(3, 0)},
     {MP(0, 0), MP(0, 1), MP(0, 2), MP(0, 3)},
@@ -129,6 +129,7 @@ inline int qpow (int, int);
 
 inline void drawDataInt (int, int);
 inline void drawScore ();
+inline void drawLogo();
 
 //#define drawCntDn(); {setColor(3); setCursor(30, 15); cout<<setw(16)<<setiosflags(ios::internal)<<cntDown;}
 //#define drawScore(); {setColor(3); setCursor(30, 19); printf("%m16d", score);}
@@ -140,6 +141,8 @@ inline void drawScore ();
 #define drawSpace() printf("  ")
 inline void drawWelcome ();
 inline void drawUI ();
+inline void drawGameOver();
+inline void drawYouWin();
 inline void drawTetris (int, int, int, bool);
 inline void drawPrediction (int, bool);
 
@@ -148,11 +151,13 @@ inline bool placeJudge (int, int, int);
 
 bool vis[28][16];
 
-int score, top = 25, nowx, nowy = 5, steins, kurisu, interval=300, cntDown=1, chBase=1;
+int top = 25, nowx, nowy = 5, steins, kurisu, interval=300, cntDown=1;
+long long score, chBase = 1ll;
 
 signed main () {
     drawWelcome();
     drawUI();
+    drawLogo();
 
     srand(time(NULL));
     do steins = (rand() + 24) % 24;
@@ -221,13 +226,7 @@ signed main () {
                 drawPrediction(steins, false);
                 drawTetris(steins, nowx, nowy, false);
 
-                if (!placeJudge(steins, nowx, nowy)) {
-                    system("cls");
-                    isCursorDisplay(true);
-                    puts("Game Over");
-                    printf("Your score is: %d.\n", score);
-                    break;
-                }
+                if (!placeJudge(steins, nowx, nowy)) drawGameOver();
             }
         }
 
@@ -236,7 +235,7 @@ signed main () {
             if (!(key^SP)&&placeJudge(kurisu,nowx,nowy)&&(steins^kurisu)) {
                 drawTetris(steins, nowx, nowy, true);
                 drawTetris(kurisu, 5, 16, true);
-                steins^kurisu? (steins^=kurisu^=steins^=kurisu):0;
+                steins^=kurisu^=steins^=kurisu;
                 drawPrediction(steins, true);
                 drawTetris(steins, nowx, nowy, false);
                 drawTetris(kurisu, 5, 16, false);
@@ -282,7 +281,7 @@ signed main () {
 
 inline bool placeJudge (int name, int x, int y) {
     register int tmpx, tmpy;
-    vector<pair<int, int> >::iterator iter = dMap[name].begin();
+    auto iter = dMap[name].begin();
     for (; iter != dMap[name].end(); ++ iter) {
         tmpx = x + iter->first;
         tmpy = y + iter->second;
@@ -301,25 +300,32 @@ inline void drawDataInt (int num, int y) {
     printf("%d", num);
 }
 
+long long preScore;
+
 inline void drawScore () {
     setCursor(30, 19);
-    for (register int i=0; i^16; ++ i) putchar(' ');
-    static char cMap[4] = {0, 'K', 'M', 'G'};
-    register int cnt = 0, a = score, cPos = 0;
-    if (a<0) a = -a, ++ cnt;
+    printf("                ");
+    static char cMap[4] = {' ', 'K', 'M', 'G'};
+    register int cnt = 0, cPos = 0;
+    register long long a = score;
+    register bool minusFlag = false;
+    if (a<0ll) a = -a, minusFlag = true, ++ cnt;
     setColor(3); setCursor(30, 19);
-    while (a /= 10) ++ cnt; a = score;
-    while (cnt>14) cnt -= 2, a /= 1000, ++ cPos;
-    cnt = (16-cnt) >> 1;
+    while (a /= 10ll) ++ cnt; a = score;
+    while (cnt>8) {
+        cnt -= 2, a /= 1000, ++ cPos;
+        if (cPos > 3) minusFlag? drawGameOver():drawYouWin();
+    } cnt = (16-cnt) >> 1;
     while (cnt --) putchar(' ');
-    printf("%d%c", score, cMap[cPos]);
+    printf("%lld", a);
+    putchar(cMap[cPos]);
 }
 
 int preName = -1, prex, prey;
 
 inline void drawPrediction (int name, bool isClr) {
     register int tmpx, tmpy;
-    vector<pair<int, int> >::iterator iter = dMap[preName].begin();
+    auto iter = dMap[preName].begin();
     if (isClr) for (; iter != dMap[preName].end(); ++ iter) {
         tmpx = prex + iter->first;
         tmpy = prey + iter->second;
@@ -341,7 +347,7 @@ inline void drawPrediction (int name, bool isClr) {
 
 inline void drawTetris (int name, int x, int y, bool re) {
     register int tmpx, tmpy, cnt = 0;
-    vector<pair<int, int> >::iterator iter = dMap[name].begin();
+    auto iter = dMap[name].begin();
     for (; iter != dMap[name].end(); ++ iter, ++ cnt) {
         tmpx = x + iter->first;
         tmpy = y + iter->second;
@@ -349,6 +355,22 @@ inline void drawTetris (int name, int x, int y, bool re) {
         if (re) drawSpace();
         else {setColor(cnt + 1); drawBlock();}
     }
+}
+
+inline void drawYouWin () {
+    system("cls");
+    isCursorDisplay(true);
+    puts("YouWin!");
+    printf("Your score is: %d.\n", score);
+    exit(0);
+}
+
+inline void drawGameOver () {
+    system("cls");
+    isCursorDisplay(true);
+    puts("Game Over");
+    printf("Your score is: %d.\n", score);
+    exit(0);
 }
 
 inline void drawWelcome () {
@@ -362,14 +384,27 @@ inline void drawWelcome () {
 
 inline void drawUI () {
     setColor(3);
-    for (register int i=0; i^maxl; ++ i) {
+    for (register int i=0; i^15; ++ i) {
         setCursor(i<<1, 0); printf("##"); //drawBlock();
         setCursor(i<<1, maxh); printf("##"); //drawBlock();
+    } for (register int i=15; i^23; ++ i) {
+        setCursor(i<<1, 0); printf("=");
+        setCursor(i<<1, maxh); printf("=");
     } for (register int i=0; i^maxh; ++ i) {
         setCursor(0, i);       printf("##"); //drawBlock();
         setCursor(maxl+4, i);  printf("##"); //drawBlock();
-        setCursor(maxl+22, i); printf("##"); //drawBlock();
+        //setCursor(maxl+22, i); printf("##"); //drawBlock();
+        setCursor(maxl+22, i); printf("￤");
     }
+
+    setCursor(0, 0); printf("□");
+    setCursor(0, maxh); printf("□");
+    setCursor(14<<1, 0); printf("□≡≡");
+    setCursor(14<<1, maxh); printf("□≡≡");
+    setCursor((23<<1)-2, 0); putchar('-');
+    setCursor((23<<1)-2, maxh); putchar('-');
+    setCursor(23<<1, 0); printf("◇");
+    setCursor(23<<1, maxh); printf("◇");
 
     drawScore(); drawInter();
     setColor(3); setCursor(36, 2);  printf("NEXT");
@@ -417,7 +452,7 @@ inline int rotate (int name) {
 }
 
 inline void setColor (int color) {
-    switch (color) {
+    switch (color % 5) {
         case 0: color = 0x08; break;
         case 1: color = 0x0C; break;
         case 2: color = 0x0D; break;
@@ -445,4 +480,33 @@ inline int qpow (int a, int t) {
         if (t&1) ret = ret * base;
         base = base * base, t >>= 1;
     } return ret;
+}
+
+const vector<int> logoMap[5] = {
+        {0, 17, 18, 20},
+        {1, 2, 5, 11, 14, 17, 19, 21},
+        {1, 2, 5, 6, 7, 11, 14, 15, 16, 19, 21, 22, 23, 24},
+        {1, 2, 5, 11, 14, 16, 19, 24},
+        {0, 0, 1, 3, 4, 9, 10, 12, 13, 15, 16, 18}
+};
+
+#define logoStartX (28<<1)
+#define logoStartY 3
+
+inline void drawLogo () {
+    for (register int i=0; i^5; ++ i) {
+        auto iter = logoMap[i].begin();
+        register bool flag = *iter;
+        if (!flag) {
+            setCursor(logoStartX, logoStartY+i);
+            for (register int j=0; j^25; ++ j) {
+                setColor(i+j); printf("■");
+            }
+        } for (++ iter; iter != logoMap[i].end(); ++ iter) {
+            setCursor(logoStartX+(*iter<<1), logoStartY+i);
+            setColor(i+((*iter)<<1));
+            printf(flag? "■":"  ");
+        }
+
+    }
 }
