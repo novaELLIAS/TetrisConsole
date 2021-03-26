@@ -189,14 +189,13 @@ signed main () {
 
         register int key;
         if(_kbhit()) if((key=_getch()) ^ PRE) {
-            if (!(key ^ SP) && placeJudge(kurisu, nowx, nowy)) {
+            if (!(key^SP)&&placeJudge(kurisu,nowx,nowy)&&(steins^kurisu)) {
                 drawTetris(steins, nowx, nowy, true);
                 drawTetris(kurisu, 5, 16, true);
                 steins^kurisu? (steins^=kurisu^=steins^=kurisu):0;
                 drawPrediction(steins, true);
                 drawTetris(steins, nowx, nowy, false);
                 drawTetris(kurisu, 5, 16, false);
-                interval = (int)(interval * 0.95);
                 score += log(cntDown) - (chBase<<=1); cntDown = 1;
                 interval = (int)(interval * 0.99); drawData();
             }
