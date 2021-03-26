@@ -216,7 +216,7 @@ signed main () {
                 } if (tflag) {
                     interval = (int)(interval * 0.85);
                     if (clrCnt) score += (300 - interval) << clrCnt;
-                    drawData();
+                    drawData(); drawLogo();
                 }
 
                 steins = kurisu; kurisu = (rand() + 24) % 24;
@@ -494,19 +494,19 @@ const vector<int> logoMap[5] = {
 #define logoStartY 3
 
 inline void drawLogo () {
+    register int colorOffset = rand();
     for (register int i=0; i^5; ++ i) {
         auto iter = logoMap[i].begin();
         register bool flag = *iter;
         if (!flag) {
             setCursor(logoStartX, logoStartY+i);
             for (register int j=0; j^25; ++ j) {
-                setColor(i+j); printf("■");
+                setColor(i+j+colorOffset); printf(rand()%3? "□":"■");
             }
         } for (++ iter; iter != logoMap[i].end(); ++ iter) {
             setCursor(logoStartX+(*iter<<1), logoStartY+i);
-            setColor(i+((*iter)<<1));
-            printf(flag? "■":"  ");
+            setColor(i+((*iter)<<1)+colorOffset);
+            printf(flag? (rand()%3? "□":"■"):"  ");
         }
-
     }
 }
