@@ -58,17 +58,60 @@ using namespace std;
 #define DW  80
 #define SP  32
 
-const int dMap[24][9] = {
-        {0, 0, 1, 0, 2, 0, 3, 0, 4}, {0, 0, 0, 1, 0, 2, 0, 3, 1},
-        {0, 0, 1, 0, 0, 1, 1, 1, 2},
-        {0, 0, 1, 0, 1, 1, 1, 2, 2}, {0, 1, 1, 1, 2, 0, 2, 1, 3}, {0, 0, 0, 1, 0, 2, 1, 2, 2}, {0, 0, 0, 1, 1, 0, 2, 0, 3},
-        {1, 0, 1, 1, 1, 2, 0, 2, 2}, {0, 0, 0, 1, 1, 1, 2, 1, 3}, {0, 0, 0, 1, 0, 2, 1, 0, 2}, {0, 0, 1, 0, 2, 0, 2, 1, 3},
-        {0, 0, 0, 1, 1, 1, 1, 2, 2}, {0, 1, 1, 0, 1, 1, 2, 0, 3},
-        {0, 1, 0, 2, 1, 0, 1, 1, 2}, {0, 0, 1, 0, 1, 1, 2, 1, 3},
-        {0, 0, 0, 0, 0, 0, 0, 0, 1},
-        {0, 0, 0, 1, 1, 0, 0, 0, 2}, {0, 0, 0, 0, 1, 0, 1, 1, 2}, {0, 0, 0, 0, 1, 0, 1,-1, 2}, {0, 0, 0, 0, 0,-1, 1, 0, 2},
-        {0, 0, 0, 0, 0, 1, 0, 2, 1}, {0, 0, 0, 0, 1, 0, 2, 0, 3},
-        {0, 0, 0, 0, 1, 0, 1, 0, 2}, {0, 0, 0, 0, 0, 1, 0, 1, 1}
+#define MP(x,y) make_pair(x,y)
+
+/*
+const int dMapOrigin[24][9] = {
+    {0, 0, 1, 0, 2, 0, 3, 0, 4}, {0, 0, 0, 1, 0, 2, 0, 3, 1},
+    {0, 0, 1, 0, 0, 1, 1, 1, 2},
+    {0, 0, 1, 0, 1, 1, 1, 2, 2}, {0, 1, 1, 1, 2, 0, 2, 1, 3}, {0, 0, 0, 1, 0, 2, 1, 2, 2}, {0, 0, 0, 1, 1, 0, 2, 0, 3},
+    {1, 0, 1, 1, 1, 2, 0, 2, 2}, {0, 0, 0, 1, 1, 1, 2, 1, 3}, {0, 0, 0, 1, 0, 2, 1, 0, 2}, {0, 0, 1, 0, 2, 0, 2, 1, 3},
+    {0, 0, 0, 1, 1, 1, 1, 2, 2}, {0, 1, 1, 0, 1, 1, 2, 0, 3},
+    {0, 1, 0, 2, 1, 0, 1, 1, 2}, {0, 0, 1, 0, 1, 1, 2, 1, 3},
+    {0, 0, 0, 0, 0, 0, 0, 0, 1},
+    {0, 0, 0, 1, 1, 0, 0, 0, 2}, {0, 0, 0, 0, 1, 0, 1, 1, 2}, {0, 0, 0, 0, 1, 0, 1,-1, 2}, {0, 0, 0, 0, 0,-1, 1, 0, 2},
+    {0, 0, 0, 0, 0, 1, 0, 2, 1}, {0, 0, 0, 0, 1, 0, 2, 0, 3},
+    {0, 0, 0, 0, 1, 0, 1, 0, 2}, {0, 0, 0, 0, 0, 1, 0, 1, 1}
+};
+*/
+
+int height[24] = {4, 1, 2, 2, 3, 2, 3, 2, 3, 2, 3, 2, 3, 2, 3, 1, 2, 2, 2, 2, 1, 3, 2, 1};
+
+vector <pair<int, int> > dMap[24] = {
+
+    {MP(0, 0), MP(1, 0), MP(2, 0), MP(3, 0)},
+    {MP(0, 0), MP(0, 1), MP(0, 2), MP(0, 3)},
+
+    {MP(0, 0), MP(1, 0), MP(0, 1), MP(1, 1)},
+
+    {MP(0, 0), MP(1, 0), MP(1, 1), MP(1, 2)},
+    {MP(0, 1), MP(1, 1), MP(2, 0), MP(2, 1)},
+    {MP(0, 0), MP(0, 1), MP(0, 2), MP(1, 2)},
+    {MP(0, 0), MP(0, 1), MP(1, 0), MP(2, 0)},
+
+    {MP(1, 0), MP(1, 1), MP(1, 2), MP(0, 2)},
+    {MP(0, 0), MP(0, 1), MP(1, 1), MP(2, 1)},
+    {MP(0, 0), MP(0, 1), MP(0, 2), MP(1, 0)},
+    {MP(0, 0), MP(1, 0), MP(2, 0), MP(2, 1)},
+
+    {MP(0, 0), MP(0, 1), MP(1, 1), MP(1, 2)},
+    {MP(0, 1), MP(1, 0), MP(1, 1), MP(2, 0)},
+
+    {MP(0, 1), MP(0, 2), MP(1, 0), MP(1, 1)},
+    {MP(0, 0), MP(1, 0), MP(1, 1), MP(2, 1)},
+
+    {MP(0, 0)},
+
+    {MP(0, 0), MP(0, 1), MP(1, 0)},
+    {MP(0, 0), MP(1, 0), MP(1, 1)},
+    {MP(0, 0), MP(1, 0), MP(1,-1)},
+    {MP(0, 0), MP(0,-1), MP(1, 0)},
+
+    {MP(0, 0), MP(0, 1), MP(0, 2)},
+    {MP(0, 0), MP(1, 0), MP(2, 0)},
+
+    {MP(0, 0), MP(1, 0)},
+    {MP(0, 0), MP(0, 1)}
 };
 
 #define maxl 24
@@ -136,16 +179,17 @@ signed main () {
             } else {
                 BLOCKFREEZE:
                 register int tmpx, tmpy;
-                for (register int i = 0; i ^ 4; ++ i) {
-                    tmpx = nowx + dMap[steins][i<<1];
-                    tmpy = nowy + dMap[steins][i<<1|1];
+                auto iter = dMap[steins].cbegin();
+                for (; iter != dMap[steins].cend(); ++ iter) {
+                    tmpx = nowx + iter->first;
+                    tmpy = nowy + iter->second;
                     setCursor((tmpy + 1) << 1, tmpx + 1);
                     setColor(0); drawBlock();
                     vis[tmpx][tmpy] = true;
                 } top = top > nowx ? nowx : top;
 
                 register bool tflag = false, flag; register int clrCnt = 0;
-                for (register int i=nowx; i < nowx+dMap[steins][8]; ++ i, flag=true) {
+                for (register int i=nowx; i < nowx+height[steins]; ++ i, flag=true) {
                     for (register int j=0; j^13; ++ j) {
                         if (!vis[i][j]) {
                             if (clrCnt) {
@@ -238,9 +282,10 @@ signed main () {
 
 inline bool placeJudge (int name, int x, int y) {
     register int tmpx, tmpy;
-    for (register int i=0; i^4; ++ i) {
-        tmpx = x + dMap[name][i<<1];
-        tmpy = y + dMap[name][i<<1|1];
+    vector<pair<int, int> >::iterator iter = dMap[name].begin();
+    for (; iter != dMap[name].end(); ++ iter) {
+        tmpx = x + iter->first;
+        tmpy = y + iter->second;
         if(!placeLegal()) return false;
     } return true;
 }
@@ -274,32 +319,35 @@ int preName = -1, prex, prey;
 
 inline void drawPrediction (int name, bool isClr) {
     register int tmpx, tmpy;
-    if (isClr) for (register int i=0; i^4; ++ i) {
-        tmpx = prex + dMap[preName][i<<1];
-        tmpy = prey + dMap[preName][i<<1|1];
+    vector<pair<int, int> >::iterator iter = dMap[preName].begin();
+    if (isClr) for (; iter != dMap[preName].end(); ++ iter) {
+        tmpx = prex + iter->first;
+        tmpy = prey + iter->second;
         setCursor((tmpy+1)<<1, tmpx+1);
         drawSpace();
     }
 
-    register int x = nowx - 1, y = nowy;
+    register int x = nowx - 1, y = nowy, cnt = 0;
     while (placeJudge(name, ++ x, y)); x --;
 
-    for (register int i=0; i^4; ++ i) {
-        tmpx = x + dMap[name][i<<1];
-        tmpy = y + dMap[name][i<<1|1];
+    iter = dMap[name].begin();
+    for (; iter != dMap[name].end(); ++ iter, ++ cnt) {
+        tmpx = x + iter->first;
+        tmpy = y + iter->second;
         setCursor((tmpy+1)<<1, tmpx+1);
-        setColor(i+1); printf("□");
+        setColor(cnt + 1); printf("□");
     } prex = x, prey = y, preName = name;
 }
 
 inline void drawTetris (int name, int x, int y, bool re) {
-    register int tmpx, tmpy;
-    for (register int i=0; i^4; ++ i) {
-        tmpx = x + dMap[name][i<<1];
-        tmpy = y + dMap[name][i<<1|1];
+    register int tmpx, tmpy, cnt = 0;
+    vector<pair<int, int> >::iterator iter = dMap[name].begin();
+    for (; iter != dMap[name].end(); ++ iter, ++ cnt) {
+        tmpx = x + iter->first;
+        tmpy = y + iter->second;
         setCursor((tmpy+1)<<1, tmpx+1);
         if (re) drawSpace();
-        else {setColor(i+1); drawBlock();}
+        else {setColor(cnt + 1); drawBlock();}
     }
 }
 
