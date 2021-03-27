@@ -89,10 +89,10 @@ const vector <pair<int, int> > dMap[24] = {
     {MP(0, 0), MP(0, 1), MP(0, 2), MP(1, 2)},
     {MP(0, 0), MP(0, 1), MP(1, 0), MP(2, 0)},
 
-    {MP(1, 0), MP(1, 1), MP(1, 2), MP(0, 2)},
-    {MP(0, 0), MP(0, 1), MP(1, 1), MP(2, 1)},
-    {MP(0, 0), MP(0, 1), MP(0, 2), MP(1, 0)},
-    {MP(0, 0), MP(1, 0), MP(2, 0), MP(2, 1)},
+    {MP(1, 0), MP(1, 1), MP(1, 2), MP(0, 1)},
+    {MP(1, 0), MP(0, 1), MP(1, 1), MP(2, 1)},
+    {MP(0, 0), MP(0, 1), MP(0, 2), MP(1, 1)},
+    {MP(0, 0), MP(1, 0), MP(2, 0), MP(1, 1)},
 
     {MP(0, 0), MP(0, 1), MP(1, 1), MP(1, 2)},
     {MP(0, 1), MP(1, 0), MP(1, 1), MP(2, 0)},
@@ -129,14 +129,17 @@ inline int qpow (int, int);
 
 inline void drawDataInt (int, int);
 inline void drawScore ();
+inline void drawChBase ();
 inline void drawLogo();
 
 //#define drawCntDn(); {setColor(3); setCursor(30, 15); cout<<setw(16)<<setiosflags(ios::internal)<<cntDown;}
 //#define drawScore(); {setColor(3); setCursor(30, 19); printf("%m16d", score);}
 //#define drawInter(); {setColor(3); setCursor(30, 23); printf("%m16d", 301-interval);}
-#define drawCntDn(); {drawDataInt(cntDown, 15);}
+//#define drawCntDn(); {drawDataInt(cntDown, 15);}
+//#define drawChBase(); {drawDataInt(chBase, 15);}
 #define drawInter(); {drawDataInt(301-interval, 23);}
-#define drawData();  {drawScore(); drawInter(); drawCntDn();}
+//#define drawData();  {drawScore(); drawInter(); drawCntDn();}
+#define drawData();  {drawScore(); drawInter(); drawChBase();}
 #define drawBlock() printf("■")
 #define drawSpace() printf("  ")
 inline void drawWelcome ();
@@ -347,6 +350,7 @@ signed main () {
                     } goto BLOCKFREEZE; break;
             }
         } Sleep(1); ++ timer;
+        if (clock()-startTime >= 9999990) drawYouWin();
     } system("pause"); return 0;
 }
 
@@ -369,6 +373,24 @@ inline void drawDataInt (int num, int y) {
     cnt = (16-cnt) >> 1;
     while (cnt --) putchar(' ');
     printf("%d", num);
+}
+
+inline void drawChBase () {
+    setCursor(30, 15);
+    printf("                ");
+    static char cMap[4] = {' ', 'K', 'M', 'G'};
+    register int cnt = 0, cPos = 0;
+    register long long a = chBase;
+    setColor(3); setCursor(30, 15);
+    while (a /= 10ll) ++ cnt; a = chBase;
+    if (cnt>=16) drawGameOver();
+    while (cnt>8) {
+        cnt -= 2, a /= 1000, ++ cPos;
+        if (cPos > 3) drawGameOver();
+    } cnt = (16-cnt) >> 1;
+    while (cnt --) putchar(' ');
+    printf("%lld", a);
+    putchar(cMap[cPos]);
 }
 
 inline void drawScore () {
@@ -529,7 +551,7 @@ inline void drawUI () {
 
     //drawScore(); drawInter();
     setColor(3); setCursor(36, 2);  printf("NEXT");
-    setColor(3); setCursor(32, 13); printf("Down Counter");
+    setColor(3); setCursor(36, 13); printf("Base");
     setColor(3); setCursor(35, 17); printf("nScore");
     setColor(3); setCursor(35, 21); printf("nSpeed");
 
