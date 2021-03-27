@@ -153,8 +153,6 @@ inline bool placeJudge (int, int, int);
 
 bool vis[28][16];
 
-
-
 int queHead, queTail, queSize;
 #define queLen 20
 #define maxNum 17
@@ -173,32 +171,14 @@ int top = 25, nowx, nowy = 5, steins, kurisu, interval=300, cntDown=1;
 long long score, chBase = 1ll;
 char buff[1001];
 
-inline void drawLog (string s) {
-    register double nowTime = (double) (clock()-startTime) / 1000.0;
-    sprintf(buff, "[%07.2f]", nowTime);
-    register string timeStr; timeStr.assign(buff);
-
-    while (queSize >= maxNum) queHead = (queHead + 1) % queLen, -- queSize;
-    switch(s[1]) {
-        case 's': que[queTail].color = 7; break;
-        case 'e': que[queTail].color = FOREGROUND_RED; break;
-        case 'd': que[queTail].color = FOREGROUND_GREEN; break;
-        case 'k': que[queTail].color = FOREGROUND_BLUE; break;
-    } que[queTail].str = timeStr + s, queTail = (queTail + 1) % queLen, ++ queSize;
-
-    for (register int i=queHead, cnt=0; i^queTail; i=(i+1)%queLen, ++cnt) {
-        SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), que[i].color);
-        setCursor(logStartX, logStartY + cnt); cout << empStr;
-        setCursor(logStartX, logStartY + cnt); cout << que[i].str;
-    }
-}
-
 signed main () {
-    drawWelcome();
+    srand(time(NULL));
+    isCursorDisplay(false);
+
     drawUI();
     drawLogo();
+    drawWelcome();
 
-    srand(time(NULL));
     do steins = (rand() + 24) % 24;
     while (steins>=11 && steins<=14);
     kurisu = (rand() + 24) % 24;
@@ -209,7 +189,6 @@ signed main () {
 
     register int timer = 0;
 
-    isCursorDisplay(false);
     drawData();
 
     register string logStr;
@@ -229,6 +208,10 @@ signed main () {
                 if (!placeJudge(steins, nowx + 1, nowy)) goto BLOCKFREEZE;
             } else {
                 BLOCKFREEZE:
+                if (cntDown > 2) {
+                    sprintf(buff, "[dat] Score inc by %d because of [↓] bonus.", (int)log(cntDown));
+                    logStr.assign(buff); drawLog(logStr); score += (int)log(cntDown);
+                } cntDown = 1;
                 sprintf(buff, "[sys] Tetris %d frozen at (%d, %d).", steins, nowx, nowy);
                 logStr.assign(buff); drawLog(logStr); register int tmpx, tmpy;
                 auto iter = dMap[steins].cbegin();
@@ -340,7 +323,7 @@ signed main () {
                         drawPrediction(steins, true);
                         drawTetris(steins, nowx, nowy, false);
                     } else {
-                        drawLog("[key] Key [←] triggered but unable to rotate.");
+                        drawLog("[key] Key [←] triggered but unable to move.");
                     } break;
                 case RT:
                     if (cntDown > 2) {
@@ -353,7 +336,7 @@ signed main () {
                         drawPrediction(steins, true);
                         drawTetris(steins, nowx, nowy, false);
                     } else {
-                        drawLog("[key] Key [→] triggered but unable to rotate.");
+                        drawLog("[key] Key [→] triggered but unable to move.");
                     } break;
                 case DW:
                     if (placeJudge(steins, nowx+1, nowy)) {
@@ -387,8 +370,6 @@ inline void drawDataInt (int num, int y) {
     while (cnt --) putchar(' ');
     printf("%d", num);
 }
-
-long long preScore;
 
 inline void drawScore () {
     setCursor(30, 19);
@@ -445,31 +426,82 @@ inline void drawTetris (int name, int x, int y, bool re) {
     }
 }
 
+inline void drawLog (string s) {
+    register double nowTime = (double) (clock()-startTime) / 1000.0;
+    sprintf(buff, "[%07.2f]", nowTime);
+    register string timeStr; timeStr.assign(buff);
+
+    while (queSize >= maxNum) queHead = (queHead + 1) % queLen, -- queSize;
+    switch(s[1]) {
+        case 's': que[queTail].color = 7; break;
+        case 'e': que[queTail].color = FOREGROUND_RED; break;
+        case 'd': que[queTail].color = FOREGROUND_GREEN; break;
+        case 'k': que[queTail].color = FOREGROUND_BLUE; break;
+    } que[queTail].str = timeStr + s, queTail = (queTail + 1) % queLen, ++ queSize;
+
+    for (register int i=queHead, cnt=0; i^queTail; i=(i+1)%queLen, ++cnt) {
+        SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), que[i].color);
+        setCursor(logStartX, logStartY + cnt); cout << empStr;
+        setCursor(logStartX, logStartY + cnt); cout << que[i].str;
+    }
+}
 
 inline void drawYouWin () {
-    system("cls");
-    isCursorDisplay(true);
-    puts("YouWin!");
-    printf("Your score is: %d.\n", score);
-    exit(0);
+    sprintf(buff, "[sys] You Win! Your score is: %d.", score);
+    register string tmpStr; tmpStr.assign(buff); drawLog(tmpStr);
 }
 
 inline void drawGameOver () {
-    system("cls");
-    isCursorDisplay(true);
-    puts("Game Over");
-    printf("Your score is: %d.\n", score);
-    exit(0);
+    sprintf(buff, "[sys] Game Over! Score: %d. Press [Q] to quit.", score);
+    register string tmpStr; tmpStr.assign(buff); drawLog(tmpStr); register char key; drawUI();
+    while (true) if (_kbhit() && !(_getch()^'q')) {
+            fontColorReset(); system("cls"); exit(0);
+        }
 }
 
 inline void drawWelcome () {
-    system("cls");
-    puts("Welcome to tetris!");
-    puts("Code By Ellias Kiri Stuart @ 2021/03/24");
-    //puts("Press any key to start...");
-    system("pause");
-    system("cls");
+    fontColorReset();
+    setCursor(logStartX, logStartY+2); printf("Welcome to TetrisConsole!");
+    setCursor(logStartX, logStartY+4); printf("use [↑] to rotate.");
+    setCursor(logStartX, logStartY+5); printf("use [←] and [→] to move left or right.");
+    setCursor(logStartX, logStartY+6); printf("use [↓] to  accelerate the decent.");
+    setCursor(logStartX, logStartY+7); printf("use [SPACE] to swap now and next.");
+    setCursor(logStartX, logStartY+9); printf("Press [S] to start. Enjoy Yourself!");
+
+    while (!_kbhit() || (_getch()^'s'));
+
+    setCursor(logStartX, logStartY+2); cout << empStr;
+    setCursor(logStartX, logStartY+4); cout << empStr;
+    setCursor(logStartX, logStartY+5); cout << empStr;
+    setCursor(logStartX, logStartY+6); cout << empStr;
+    setCursor(logStartX, logStartY+7); cout << empStr;
+    setCursor(logStartX, logStartY+9); cout << empStr;
 }
+
+//inline void drawYouWin () {
+//    system("cls");
+//    isCursorDisplay(true);
+//    puts("YouWin!");
+//    printf("Your score is: %d.\n", score);
+//    exit(0);
+//}
+//
+//inline void drawGameOver () {
+//    system("cls");
+//    isCursorDisplay(true);
+//    puts("Game Over");
+//    printf("Your score is: %d.\n", score);
+//    exit(0);
+//}
+//
+//inline void drawWelcome () {
+//    system("cls");
+//    puts("Welcome to tetris!");
+//    puts("Code By Ellias Kiri Stuart @ 2021/03/24");
+//    //puts("Press any key to start...");
+//    system("pause");
+//    system("cls");
+//}
 
 inline void drawUI () {
     setColor(3);
@@ -495,7 +527,7 @@ inline void drawUI () {
     setCursor(23<<1, 0); printf("◇");
     setCursor(23<<1, maxh); printf("◇");
 
-    drawScore(); drawInter();
+    //drawScore(); drawInter();
     setColor(3); setCursor(36, 2);  printf("NEXT");
     setColor(3); setCursor(32, 13); printf("Down Counter");
     setColor(3); setCursor(35, 17); printf("nScore");
