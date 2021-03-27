@@ -381,6 +381,7 @@ inline void drawScore () {
     if (a<0ll) a = -a, minusFlag = true, ++ cnt;
     setColor(3); setCursor(30, 19);
     while (a /= 10ll) ++ cnt; a = score;
+    if (cnt>=16) a>0? drawYouWin():drawGameOver();
     while (cnt>8) {
         cnt -= 2, a /= 1000, ++ cPos;
         if (cPos > 3) minusFlag? drawGameOver():drawYouWin();
@@ -531,6 +532,9 @@ inline void drawUI () {
     setColor(3); setCursor(32, 13); printf("Down Counter");
     setColor(3); setCursor(35, 17); printf("nScore");
     setColor(3); setCursor(35, 21); printf("nSpeed");
+
+    fontColorReset(); setCursor(0, 27); printf("Copyright (c) 2021 Ellias Kiri Stuart");
+    setCursor(0, 28); printf("GitHub Issue: TetrisConsole");
 }
 
 inline int rotate (int name) {
