@@ -145,14 +145,53 @@ inline void drawGameOver();
 inline void drawYouWin();
 inline void drawTetris (int, int, int, bool);
 inline void drawPrediction (int, bool);
+inline void drawLog (string);
 
+#define fontColorReset() SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7)
 #define placeLegal() ((~tmpx)&&(tmpx<25)&&(~tmpy)&&(tmpy<13)&&!vis[tmpx][tmpy])
 inline bool placeJudge (int, int, int);
 
 bool vis[28][16];
 
+
+
+int queHead, queTail, queSize;
+#define queLen 20
+#define maxNum 17
+#define logStartX (27<<1)
+#define logStartY 9
+
+struct node {
+    string str;
+    int color;
+} que[queLen];
+queue<int> tmpQue;
+clock_t startTime;
+const string empStr="                                                               ";
+
 int top = 25, nowx, nowy = 5, steins, kurisu, interval=300, cntDown=1;
 long long score, chBase = 1ll;
+char buff[1001];
+
+inline void drawLog (string s) {
+    register double nowTime = (double) (clock()-startTime) / 1000.0;
+    sprintf(buff, "[%07.2f]", nowTime);
+    register string timeStr; timeStr.assign(buff);
+
+    while (queSize >= maxNum) queHead = (queHead + 1) % queLen, -- queSize;
+    switch(s[1]) {
+        case 's': que[queTail].color = 7; break;
+        case 'e': que[queTail].color = FOREGROUND_RED; break;
+        case 'd': que[queTail].color = FOREGROUND_GREEN; break;
+        case 'k': que[queTail].color = FOREGROUND_BLUE; break;
+    } que[queTail].str = timeStr + s, queTail = (queTail + 1) % queLen, ++ queSize;
+
+    for (register int i=queHead, cnt=0; i^queTail; i=(i+1)%queLen, ++cnt) {
+        SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), que[i].color);
+        setCursor(logStartX, logStartY + cnt); cout << empStr;
+        setCursor(logStartX, logStartY + cnt); cout << que[i].str;
+    }
+}
 
 signed main () {
     drawWelcome();
@@ -173,17 +212,25 @@ signed main () {
     isCursorDisplay(false);
     drawData();
 
+    register string logStr;
+    startTime = clock();
+    drawLog("[sys] Game Start.");
+
     while (true) {
         if (timer>=interval) {
-            timer = 0; score += log(cntDown); cntDown = 1; drawData();
-            DROPTEST:
+            timer = 0;
+            if (cntDown > 2) {
+                sprintf(buff, "[dat] Score inc by %d because of [↓] bonus.", (int)log(cntDown));
+                logStr.assign(buff); drawLog(logStr); score += (int)log(cntDown);
+            } cntDown = 1; drawData(); DROPTEST:
             if (placeJudge(steins, nowx + 1, nowy)) {
                 drawTetris(steins, nowx ++, nowy, true);
                 drawTetris(steins, nowx, nowy, false);
                 if (!placeJudge(steins, nowx + 1, nowy)) goto BLOCKFREEZE;
             } else {
                 BLOCKFREEZE:
-                register int tmpx, tmpy;
+                sprintf(buff, "[sys] Tetris %d frozen at (%d, %d).", steins, nowx, nowy);
+                logStr.assign(buff); drawLog(logStr); register int tmpx, tmpy;
                 auto iter = dMap[steins].cbegin();
                 for (; iter != dMap[steins].cend(); ++ iter) {
                     tmpx = nowx + iter->first;
@@ -194,16 +241,12 @@ signed main () {
                 } top = top > nowx ? nowx : top;
 
                 register bool tflag = false, flag; register int clrCnt = 0;
+                while (!tmpQue.empty()) tmpQue.pop();
                 for (register int i=nowx; i < nowx+height[steins]; ++ i, flag=true) {
                     for (register int j=0; j^13; ++ j) {
-                        if (!vis[i][j]) {
-                            if (clrCnt) {
-                                score += (300-(int)(interval*0.85)) << clrCnt;
-                                drawScore();
-                            } flag = clrCnt = 0; break;
-                        }
+                        if (!vis[i][j]) { flag = clrCnt = 0; break;}
                     } if (flag) {
-                        clrCnt += (tflag = true);
+                        clrCnt += (tflag = true), tmpQue.push(i);
                         for (register int j = i; j >= top; -- j) {
                             for (register int k = 0; k ^ 13; ++ k) {
                                 vis[j][k] = vis[j - 1][k];
@@ -214,10 +257,30 @@ signed main () {
                         }
                     }
                 } if (tflag) {
-                    interval = (int)(interval * 0.85);
-                    if (clrCnt) score += (300 - interval) << clrCnt;
-                    drawData(); drawLogo();
+                    if (!tmpQue.empty()) {
+                        register string tmpStr = "";
+                        sprintf(buff, "[sys] Level"); logStr.assign(buff);
+                        while (!tmpQue.empty()) {
+                            if (tmpQue.size() ^ 1) {
+                                sprintf(buff, " %d,", tmpQue.front()); tmpQue.pop();
+                            } else {sprintf(buff, " %d", tmpQue.front()); tmpQue.pop();}
+                            tmpStr.assign(buff); logStr = logStr + tmpStr;
+                        } logStr += " has been cleared."; drawLog(logStr);
+                    }
+
+                    sprintf(buff, "[dat] Interval decreased because of level clearing.");
+                    logStr.assign(buff); drawLog(logStr); interval = (int)(interval * 0.85);
+
+                    if (clrCnt) {
+                        sprintf(buff, "[dat] Score inc by %d because of clearing %d levels.",\
+                            (300 - interval) << clrCnt, clrCnt);
+                        logStr.assign(buff); drawLog(logStr);
+                        score += (300 - interval) << clrCnt;
+                    } drawData(); drawLogo();
                 }
+
+                sprintf(buff, "[sys] New tetris %d generated.", kurisu);
+                logStr.assign(buff); drawLog(logStr);
 
                 steins = kurisu; kurisu = (rand() + 24) % 24;
                 drawTetris(steins, 5, 16, true);
@@ -233,39 +296,64 @@ signed main () {
         register int key;
         if(_kbhit()) if((key=_getch()) ^ PRE) {
             if (!(key^SP)&&placeJudge(kurisu,nowx,nowy)&&(steins^kurisu)) {
+                sprintf(buff, "[key] Key [SPACE] triggered, change %d to %d.", steins, kurisu);
+                logStr.assign(buff); drawLog(logStr);
                 drawTetris(steins, nowx, nowy, true);
                 drawTetris(kurisu, 5, 16, true);
                 steins^=kurisu^=steins^=kurisu;
                 drawPrediction(steins, true);
                 drawTetris(steins, nowx, nowy, false);
                 drawTetris(kurisu, 5, 16, false);
-                score += log(cntDown) - (chBase<<=1); cntDown = 1;
-                interval = (int)(interval * 0.99); drawData();
+                if (cntDown > 2) {
+                    sprintf(buff, "[dat] Score inc by %d because of [↓] bonus.", (int)log(cntDown));
+                    logStr.assign(buff); drawLog(logStr); score += (int)log(cntDown);
+                } cntDown = 1; sprintf(buff, "[dat] Score dec by %d because of SPACE punishment.", chBase <<= 1);
+                logStr.assign(buff); drawLog(logStr); score -= chBase; cntDown = 1;
+                sprintf(buff, "[dat] Interval decreased because of SPACE punishment.");
+                logStr.assign(buff); drawLog(logStr); interval=(int)(interval*0.99); drawData();
             }
         } else {
             key = _getch();
             switch(key) {
                 case UP:
-                    score += log(cntDown); cntDown = 1; drawData();
-                    if (placeJudge(rotate(steins), nowx, nowy)) {
+                    if (cntDown > 2) {
+                        sprintf(buff, "[dat] Score inc by %d because of [↓] bonus.", (int)log(cntDown));
+                        logStr.assign(buff); drawLog(logStr); score += (int)log(cntDown);
+                    } cntDown = 1; drawData(); if (placeJudge(rotate(steins), nowx, nowy)) {
+                        sprintf(buff, "[key] Key [↑] triggered, change %d to %d.", steins, rotate(steins));
+                        logStr.assign(buff); drawLog(logStr);
                         drawTetris(steins, nowx, nowy, true);
                         steins = rotate(steins);
                         drawPrediction(steins, true);
                         drawTetris(steins, nowx, nowy, false);
+                    } else {
+                        drawLog("[key] Key [↑] triggered but unable to rotate.");
                     } break;
                 case LT:
-                    score += log(cntDown); cntDown = 1; drawData();
-                    if (placeJudge(steins, nowx, nowy-1)) {
+                    if (cntDown > 2) {
+                        sprintf(buff, "[dat] Score inc by %d because of [↓] bonus.", (int)log(cntDown));
+                        logStr.assign(buff); drawLog(logStr); score += (int)log(cntDown);
+                    } cntDown = 1; drawData(); if (placeJudge(steins, nowx, nowy-1)) {
+                        //sprintf(buff, "[key] Key [←] triggered, x changed from %d to %d.", nowy, nowy-1);
+                        //logStr.assign(buff); drawLog(logStr);
                         drawTetris(steins, nowx, nowy --, true);
                         drawPrediction(steins, true);
                         drawTetris(steins, nowx, nowy, false);
+                    } else {
+                        drawLog("[key] Key [←] triggered but unable to rotate.");
                     } break;
                 case RT:
-                    score += log(cntDown); cntDown = 1; drawData();
-                    if (placeJudge(steins, nowx, nowy+1)) {
+                    if (cntDown > 2) {
+                        sprintf(buff, "[dat] Score inc by %d because of [↓] bonus.", (int)log(cntDown));
+                        logStr.assign(buff); drawLog(logStr); score += (int)log(cntDown);
+                    } cntDown = 1; drawData(); if (placeJudge(steins, nowx, nowy+1)) {
+                        //sprintf(buff, "[key] Key [→] triggered, x changed from %d to %d.", nowy, nowy+1);
+                        //logStr.assign(buff); drawLog(logStr);
                         drawTetris(steins, nowx, nowy ++, true);
                         drawPrediction(steins, true);
                         drawTetris(steins, nowx, nowy, false);
+                    } else {
+                        drawLog("[key] Key [→] triggered but unable to rotate.");
                     } break;
                 case DW:
                     if (placeJudge(steins, nowx+1, nowy)) {
@@ -356,6 +444,7 @@ inline void drawTetris (int name, int x, int y, bool re) {
         else {setColor(cnt + 1); drawBlock();}
     }
 }
+
 
 inline void drawYouWin () {
     system("cls");
