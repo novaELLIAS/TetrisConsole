@@ -454,9 +454,8 @@ inline void drawYouWin () {
 inline void drawGameOver () {
     sprintf(buff, "[sys] Game Over! Score: %d. Press [Q] to quit.", score);
     register string tmpStr; tmpStr.assign(buff); drawLog(tmpStr); register char key; drawUI();
-    while (true) if (_kbhit() && !(_getch()^'q')) {
-            fontColorReset(); system("cls"); exit(0);
-        }
+    while (!_kbhit() || (_getch()^'q'));
+    fontColorReset(); system("cls"); exit(0);
 }
 
 inline void drawWelcome () {
