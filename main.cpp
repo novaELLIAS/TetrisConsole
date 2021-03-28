@@ -217,6 +217,8 @@ signed main () {
                 } cntDown = 1;
                 sprintf(buff, "[sys] Tetris %d frozen at (%d, %d).", steins, nowx, nowy);
                 logStr.assign(buff); drawLog(logStr); register int tmpx, tmpy;
+                sprintf(buff, "[dat] Score increased by %d.", 305-interval);
+                logStr.assign(buff); drawLog(logStr); score += (305 - interval);
                 auto iter = dMap[steins].cbegin();
                 for (; iter != dMap[steins].cend(); ++ iter) {
                     tmpx = nowx + iter->first;
@@ -293,9 +295,9 @@ signed main () {
                 if (cntDown > 2) {
                     sprintf(buff, "[dat] Score inc by %d because of [↓] bonus.", (int)log(cntDown));
                     logStr.assign(buff); drawLog(logStr); score += (int)log(cntDown);
-                } cntDown = 1; sprintf(buff, "[dat] Score dec by %d because of SPACE punishment.", chBase <<= 1);
+                } sprintf(buff, "[dat] Score dec by 2^%d because of using [SPACE].", (int)log(chBase<<=1));
                 logStr.assign(buff); drawLog(logStr); score -= chBase; cntDown = 1;
-                sprintf(buff, "[dat] Interval decreased because of SPACE punishment.");
+                sprintf(buff, "[dat] Interval decreased because of using [SPACE].");
                 logStr.assign(buff); drawLog(logStr); interval=(int)(interval*0.99); drawData();
             }
         } else {
@@ -388,29 +390,26 @@ inline void drawChBase () {
         cnt -= 2, a /= 1000, ++ cPos;
         if (cPos > 3) drawGameOver();
     } cnt = (16-cnt) >> 1;
-    while (cnt --) putchar(' ');
-    printf("%lld", a);
-    putchar(cMap[cPos]);
+    while (cnt --) putchar(' '); printf("%lld", a);
+    /*fontColorReset();*/ setColor(1); putchar(cMap[cPos]);
 }
 
 inline void drawScore () {
-    setCursor(30, 19);
-    printf("                ");
-    static char cMap[4] = {' ', 'K', 'M', 'G'};
-    register int cnt = 0, cPos = 0;
+    static char cMap[5] = {' ', 'K', 'M', 'G', 'T'};
+    register int cnt = 0, cPos = 0, winFlag = 0;
     register long long a = score;
     register bool minusFlag = false;
     if (a<0ll) a = -a, minusFlag = true, ++ cnt;
-    setColor(3); setCursor(30, 19);
+
     while (a /= 10ll) ++ cnt; a = score;
-    if (cnt>=16) a>0? drawYouWin():drawGameOver();
-    while (cnt>8) {
-        cnt -= 2, a /= 1000, ++ cPos;
-        if (cPos > 3) minusFlag? drawGameOver():drawYouWin();
-    } cnt = (16-cnt) >> 1;
-    while (cnt --) putchar(' ');
-    printf("%lld", a);
-    putchar(cMap[cPos]);
+    if (cnt>=16) winFlag = a>0? 2:1;
+    while (cnt>8) {cnt -= 2, a /= 1000, ++ cPos;}
+    cnt = (16-cnt) >> 1;
+    setCursor(30, 19); printf("                ");
+    setColor(3); setCursor(30, 19);
+    while (cnt --) putchar(' '); printf("%lld", a);
+    /*fontColorReset();*/ setColor(1); putchar(cMap[cPos]);
+    if (winFlag) (winFlag^1)? drawYouWin():drawGameOver();
 }
 
 int preName = -1, prex, prey;
@@ -470,14 +469,20 @@ inline void drawLog (string s) {
 }
 
 inline void drawYouWin () {
-    sprintf(buff, "[sys] You Win! Your score is: %d.", score);
+    sprintf(buff, "[sys] Congratulations!! You Win!");
     register string tmpStr; tmpStr.assign(buff); drawLog(tmpStr);
+    sprintf(buff, "[dat] Your score is: %lld.", score); tmpStr.assign(buff); drawLog(tmpStr);
+    sprintf(buff, "[sys] Please press [Q] to quit.", score); tmpStr.assign(buff); drawLog(tmpStr);
+    while (!_kbhit() || (_getch()^'q')) Sleep(100);
+    fontColorReset(); system("cls"); exit(0);
 }
 
 inline void drawGameOver () {
-    sprintf(buff, "[sys] Game Over! Score: %d. Press [Q] to quit.", score);
-    register string tmpStr; tmpStr.assign(buff); drawLog(tmpStr); register char key; drawUI();
-    while (!_kbhit() || (_getch()^'q'));
+    sprintf(buff, "[sys] Game Over!", score);
+    register string tmpStr; tmpStr.assign(buff); drawLog(tmpStr);
+    sprintf(buff, "[dat] Your score is: %lld.", score); tmpStr.assign(buff); drawLog(tmpStr);
+    sprintf(buff, "[sys] Please press [Q] to quit."); tmpStr.assign(buff); drawLog(tmpStr);
+    drawUI(); while (!_kbhit()||(_getch()^'q')) Sleep(100);
     fontColorReset(); system("cls"); exit(0);
 }
 
@@ -490,7 +495,7 @@ inline void drawWelcome () {
     setCursor(logStartX, logStartY+7); printf("use [SPACE] to swap now and next.");
     setCursor(logStartX, logStartY+9); printf("Press [S] to start. Enjoy Yourself!");
 
-    while (!_kbhit() || (_getch()^'s'));
+    while (!_kbhit() || (_getch()^'s')) Sleep(100);
 
     setCursor(logStartX, logStartY+2); cout << empStr;
     setCursor(logStartX, logStartY+4); cout << empStr;
@@ -550,12 +555,12 @@ inline void drawUI () {
     setCursor(23<<1, maxh); printf("◇");
 
     //drawScore(); drawInter();
-    setColor(3); setCursor(36, 2);  printf("NEXT");
-    setColor(3); setCursor(36, 13); printf("Base");
-    setColor(3); setCursor(35, 17); printf("nScore");
-    setColor(3); setCursor(35, 21); printf("nSpeed");
-
-    fontColorReset(); setCursor(0, 27); printf("Copyright (c) 2021 Ellias Kiri Stuart");
+    fontColorReset();
+    /*setColor(3);*/ setCursor(36, 2);  printf("NEXT");
+    /*setColor(3);*/ setCursor(36, 13); printf("Base");
+    /*setColor(3);*/ setCursor(35, 17); printf("nScore");
+    /*setColor(3);*/ setCursor(35, 21); printf("nSpeed");
+    setCursor(0, 27); printf("Copyright (c) 2021 Ellias Kiri Stuart");
     setCursor(0, 28); printf("GitHub Issue: TetrisConsole");
 }
 
