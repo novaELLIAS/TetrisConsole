@@ -11,7 +11,14 @@
 #pragma GCC target ("avx","sse4","sse4.1","sse4.2","ssse3")
 #pragma GCC target ("f16c")
 
-#include <bits/stdc++.h>
+//#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdio>
+#include <cmath>
+#include <vector>
+#include <string>
+#include <queue>
+#include <ctime>
 #include <windows.h>
 #include <conio.h>
 
@@ -175,6 +182,8 @@ long long score, chBase = 1ll;
 char buff[1001];
 
 signed main () {
+    ios::sync_with_stdio(false);
+
     srand(time(NULL));
     isCursorDisplay(false);
 

@@ -7,7 +7,19 @@
 #IncludeRegexTransform: 
 
 C:/Users/Etern/CLionProjects/TetrisConsole/main.cpp
-bits/stdc++.h
+iostream
+-
+cstdio
+-
+cmath
+-
+vector
+-
+string
+-
+queue
+-
+ctime
 -
 windows.h
 -
