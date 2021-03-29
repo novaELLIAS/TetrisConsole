@@ -182,7 +182,7 @@ long long score, chBase = 1ll;
 char buff[1001];
 
 signed main () {
-    ios::sync_with_stdio(false);
+    //ios::sync_with_stdio(false);
 
     srand(time(NULL));
     isCursorDisplay(false);
