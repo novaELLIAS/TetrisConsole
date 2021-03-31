@@ -140,6 +140,7 @@ inline void drawDataInt (int, int);
 inline void drawScore ();
 inline void drawChBase ();
 inline void drawLogo();
+inline void drawName ();
 
 //#define drawCntDn(); {setColor(3); setCursor(30, 15); cout<<setw(16)<<setiosflags(ios::internal)<<cntDown;}
 //#define drawScore(); {setColor(3); setCursor(30, 19); printf("%m16d", score);}
@@ -178,6 +179,8 @@ struct node {
 queue<int> tmpQue;
 clock_t startTime;
 const string empStr="                                                               ";
+
+string username;
 
 int top = 25, nowx, nowy = 5, steins, kurisu, interval=300, cntDown=1;
 long long score, chBase = 1ll;
@@ -435,6 +438,13 @@ inline void drawScore () {
     if (winFlag) (winFlag^1)? drawYouWin():drawGameOver();
 }
 
+inline void drawName () {
+    register int cnt = (16 - username.length()) >> 1;
+    setCursor(30, 11); fontColorReset();
+    while (cnt --) putchar(' ');
+    std::cout << username; return;
+}
+
 int preName = -1, prex, prey;
 
 inline void drawPrediction (int name, bool isClr) {
@@ -497,7 +507,7 @@ inline void drawYouWin () {
     sprintf(buff, "[dat] Your score is: %lld.", score); tmpStr.assign(buff); drawLog(tmpStr);
     sprintf(buff, "[sys] Please press [Q] to quit.", score); tmpStr.assign(buff); drawLog(tmpStr);
     while (!_kbhit() || (_getch()^'q')) Sleep(100);
-    fontColorReset(); system("cls"); exit(0);
+    isCursorDisplay(true); fontColorReset(); system("cls"); exit(0);
 }
 
 inline void drawGameOver () {
@@ -511,21 +521,23 @@ inline void drawGameOver () {
 
 inline void drawWelcome () {
     fontColorReset();
-    setCursor(logStartX, logStartY+2); printf("Welcome to TetrisConsole!");
-    setCursor(logStartX, logStartY+4); printf("use [↑] to rotate.");
-    setCursor(logStartX, logStartY+5); printf("use [←] and [→] to move left or right.");
-    setCursor(logStartX, logStartY+6); printf("use [↓] to  accelerate the decent.");
-    setCursor(logStartX, logStartY+7); printf("use [SPACE] to swap now and next.");
-    setCursor(logStartX, logStartY+9); printf("Press [S] to start. Enjoy Yourself!");
+    setCursor(logStartX, logStartY+2);  printf("Welcome to TetrisConsole!");
+    setCursor(logStartX, logStartY+4);  printf("use [↑] to rotate.");
+    setCursor(logStartX, logStartY+5);  printf("use [←] and [→] to move left or right.");
+    setCursor(logStartX, logStartY+6);  printf("use [↓] to  accelerate the decent.");
+    setCursor(logStartX, logStartY+7);  printf("use [SPACE] to swap now and next.");
+    setCursor(logStartX, logStartY+9);  printf("Please input your name(less than 10):");
+    INPUTNAME: setCursor(logStartX, logStartY+11); isCursorDisplay(true); std::cin >> username;
+    if (username.length()>=10) {
+        setCursor(logStartX, logStartY+9); printf("Name too long. Try again(less than 10):");
+        goto INPUTNAME;
+    }
+    setCursor(logStartX, logStartY+13); printf("Press [S] to start. Enjoy Yourself!");
 
+    isCursorDisplay(false); drawName ();
     while (!_kbhit() || (_getch()^'s')) Sleep(100);
 
-    setCursor(logStartX, logStartY+2); cout << empStr;
-    setCursor(logStartX, logStartY+4); cout << empStr;
-    setCursor(logStartX, logStartY+5); cout << empStr;
-    setCursor(logStartX, logStartY+6); cout << empStr;
-    setCursor(logStartX, logStartY+7); cout << empStr;
-    setCursor(logStartX, logStartY+9); cout << empStr;
+    for (register int i=0; i^17; ++ i) {setCursor(logStartX, logStartY+i); cout << empStr;};
 }
 
 //inline void drawYouWin () {
