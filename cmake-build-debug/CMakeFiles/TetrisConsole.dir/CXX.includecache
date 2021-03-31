@@ -21,6 +21,10 @@ queue
 -
 ctime
 -
+fstream
+-
+algorithm
+-
 windows.h
 -
 conio.h

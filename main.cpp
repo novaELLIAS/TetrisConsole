@@ -19,6 +19,8 @@
 #include <string>
 #include <queue>
 #include <ctime>
+#include <fstream>
+#include <algorithm>
 #include <windows.h>
 #include <conio.h>
 
@@ -142,6 +144,11 @@ inline void drawChBase ();
 inline void drawLogo();
 inline void drawName ();
 
+inline void readRankList ();
+inline void writeRankList ();
+inline void updateRankList ();
+inline void drawRankList (int, int, int);
+
 //#define drawCntDn(); {setColor(3); setCursor(30, 15); cout<<setw(16)<<setiosflags(ios::internal)<<cntDown;}
 //#define drawScore(); {setColor(3); setCursor(30, 19); printf("%m16d", score);}
 //#define drawInter(); {setColor(3); setCursor(30, 23); printf("%m16d", 301-interval);}
@@ -154,8 +161,8 @@ inline void drawName ();
 #define drawSpace() printf("  ")
 inline void drawWelcome ();
 inline void drawUI ();
-inline void drawGameOver();
-inline void drawYouWin();
+//inline void drawGameOver();
+//inline void drawYouWin();
 inline void drawTetris (int, int, int, bool);
 inline void drawPrediction (int, bool);
 inline void drawLog (string);
@@ -163,6 +170,8 @@ inline void drawLog (string);
 #define fontColorReset() SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7)
 #define placeLegal() ((~tmpx) && (tmpx<25) && (~tmpy) && (tmpy<13) && !vis[tmpx][tmpy])
 inline bool placeJudge (int, int, int);
+
+inline void endGame (bool);
 
 bool vis[28][16];
 
@@ -297,7 +306,7 @@ signed main () {
                 drawPrediction(steins, false);
                 drawTetris(steins, nowx, nowy, false);
 
-                if (!placeJudge(steins, nowx, nowy)) drawGameOver();
+                if (!placeJudge(steins, nowx, nowy)) endGame(false);
             }
         }
 
@@ -378,8 +387,70 @@ signed main () {
                     } break;
             }
         } Sleep(1); ++ timer;
-        if (clock()-startTime >= 9999990) drawYouWin();
+        if (clock()-startTime >= 9999990) endGame(true);
     } system("pause"); return 0;
+}
+
+struct rankElement {
+    string name;
+    long long score;
+} rankList[20];
+
+fstream file;
+
+inline void readRankList () {
+
+    file.open("tetrisRanking.dat", ios::in);
+    for (register int i=0; i^10; ++ i) {
+        if (file >> rankList[i].name) file >> rankList[i].score;
+        else break;
+    } file.close();
+
+//    freopen("tetrisRanking.dat", "r", stdin);
+//    for (register int i=0; i^10; ++ i) {
+//        if (std::cin >> rankList[i].name) std::cin >> rankList[i].score;
+//        else break;
+//    } fclose (stdin);
+}
+
+inline void writeRankList () {
+
+    file.open("tetrisRanking.dat", ios::out|ios::trunc);
+    for (register int i=0; i^10; ++ i) {
+        if (rankList[i].name == "") break;
+        file << rankList[i].name << " " << rankList[i].score << endl;
+    } file.close();
+
+//    freopen("tetrisRanking.dat", "w", stdout);
+//    for (register int i=0; i^10; ++ i) {
+//        if (rankList[i].name == "") break;
+//        std::cout << rankList[i].name << " " << rankList[i].score << endl;
+//    } fclose (stdout);
+}
+
+inline bool cmp (rankElement a, rankElement b) {
+    return (a.score^b.score)? (a.score>b.score):(a.name>b.name);
+}
+
+inline void updateRankList () {
+    register int listLen = 0, pos = 0;
+    while (true) {
+        if (rankList[listLen].name == username) pos = listLen;
+        if (rankList[listLen].name == "") break; ++ listLen;
+    } if (!pos) pos = listLen; else -- listLen;
+    rankList[pos] = (rankElement){username, max(rankList[pos].score, score)};
+    std::sort(rankList+0, rankList+listLen+1, cmp);
+}
+
+inline void drawRankList (int X, int Y, int num) {
+    fontColorReset();
+    for (register int i=0; i^num; ++ i) {
+        if (rankList[i].name == "") break;
+        if (rankList[i].name == username) setColor(3);
+        else fontColorReset();
+        setCursor(X, Y+i); printf("#%02d ", i+1); std::cout << rankList[i].name;
+        setCursor(X+11, Y+i); printf("%23lld", rankList[i].score);
+    }
 }
 
 inline bool placeJudge (int name, int x, int y) {
@@ -411,10 +482,10 @@ inline void drawChBase () {
     register long long a = chBase;
     setColor(3); setCursor(30, 15);
     while (a /= 10ll) ++ cnt; a = chBase;
-    if (cnt>=16) drawGameOver();
+    if (cnt>=16) endGame(false);//drawGameOver();
     while (cnt>8) {
         cnt -= 2, a /= 1000, ++ cPos;
-        if (cPos > 3) drawGameOver();
+        if (cPos > 3) endGame(false);//drawGameOver();
     } cnt = (16-cnt) >> 1;
     while (cnt --) putchar(' '); printf("%lld", a);
     /*fontColorReset();*/ setColor(1); putchar(cMap[cPos]);
@@ -435,7 +506,7 @@ inline void drawScore () {
     setColor(3); setCursor(30, 19);
     while (cnt --) putchar(' '); printf("%lld", a);
     /*fontColorReset();*/ setColor(1); putchar(cMap[cPos]);
-    if (winFlag) (winFlag^1)? drawYouWin():drawGameOver();
+    if (winFlag) endGame(winFlag^1); //(winFlag^1)? drawYouWin():drawGameOver();
 }
 
 inline void drawName () {
@@ -501,40 +572,72 @@ inline void drawLog (string s) {
     }
 }
 
-inline void drawYouWin () {
-    sprintf(buff, "[sys] Congratulations!! You Win!");
-    register string tmpStr; tmpStr.assign(buff); drawLog(tmpStr);
-    sprintf(buff, "[dat] Your score is: %lld.", score); tmpStr.assign(buff); drawLog(tmpStr);
-    sprintf(buff, "[sys] Please press [Q] to quit.", score); tmpStr.assign(buff); drawLog(tmpStr);
-    while (!_kbhit() || (_getch()^'q')) Sleep(100);
-    isCursorDisplay(true); fontColorReset(); system("cls"); exit(0);
-}
+inline void endGame (bool isWin) {
+    updateRankList(); writeRankList();
 
-inline void drawGameOver () {
-    sprintf(buff, "[sys] Game Over!", score);
-    register string tmpStr; tmpStr.assign(buff); drawLog(tmpStr);
-    sprintf(buff, "[dat] Your score is: %lld.", score); tmpStr.assign(buff); drawLog(tmpStr);
-    sprintf(buff, "[sys] Please press [Q] to quit."); tmpStr.assign(buff); drawLog(tmpStr);
+    for (register int i=0; i^17; ++ i) {setCursor(logStartX, logStartY + i); std::cout << empStr;}
+
+    fontColorReset(); setCursor(logStartX, logStartY);printf(isWin? "Congratulations!! You win.":"Game Over!");
+    setCursor(logStartX, logStartY+2); printf("Your score is: %lld", score);
+    setCursor(logStartX, logStartY+4); printf("Ranking: ");
+    readRankList(); drawRankList(logStartX+9, logStartY+5, 10); fontColorReset();
+
+    setCursor(logStartX, logStartY+16) printf("Please press [Q] to quit.");
     drawUI(); while (!_kbhit()||(_getch()^'q')) Sleep(100);
     fontColorReset(); system("cls"); exit(0);
 }
 
+//inline void drawYouWin () {
+////    sprintf(buff, "[sys] Congratulations!! You Win!");
+////    register string tmpStr; tmpStr.assign(buff); drawLog(tmpStr);
+////    sprintf(buff, "[dat] Your score is: %lld.", score); tmpStr.assign(buff); drawLog(tmpStr);
+////    sprintf(buff, "[sys] Please press [Q] to quit.", score); tmpStr.assign(buff); drawLog(tmpStr);
+////    while (!_kbhit() || (_getch()^'q')) Sleep(100);
+////    isCursorDisplay(true); fontColorReset(); system("cls"); exit(0);
+//}
+
+//inline void drawGameOver () {
+//    updateRankList(); //writeRankList();
+//
+//    for (register int i=0; i^17; ++ i) {setCursor(logStartX, logStartY + i); std::cout << empStr;}
+//
+//    fontColorReset(); setCursor(logStartX, logStartY); printf("Game Over!");
+//    setCursor(logStartX, logStartY+2); printf("Your score is: %lld", score);
+//
+//    setCursor(logStartX, logStartY+4); printf("Ranking: ");
+//    readRankList(); drawRankList(logStartX+9, logStartY+4, 10); fontColorReset();
+//
+//    setCursor(logStartX, logStartY+16) printf("Please press [Q] to quit.");
+//    drawUI(); while (!_kbhit()||(_getch()^'q')) Sleep(100);
+//    fontColorReset(); system("cls"); exit(0);
+//
+////    sprintf(buff, "[sys] Game Over!", score);
+////    register string tmpStr; tmpStr.assign(buff); drawLog(tmpStr);
+////    sprintf(buff, "[dat] Your score is: %lld.", score); tmpStr.assign(buff); drawLog(tmpStr);
+////    sprintf(buff, "[sys] Please press [Q] to quit."); tmpStr.assign(buff); drawLog(tmpStr);
+////    drawUI(); while (!_kbhit()||(_getch()^'q')) Sleep(100);
+////    fontColorReset(); system("cls"); exit(0);
+//}
+
 inline void drawWelcome () {
     fontColorReset();
-    setCursor(logStartX, logStartY+2);  printf("Welcome to TetrisConsole!");
-    setCursor(logStartX, logStartY+4);  printf("use [↑] to rotate.");
-    setCursor(logStartX, logStartY+5);  printf("use [←] and [→] to move left or right.");
-    setCursor(logStartX, logStartY+6);  printf("use [↓] to  accelerate the decent.");
-    setCursor(logStartX, logStartY+7);  printf("use [SPACE] to swap now and next.");
-    setCursor(logStartX, logStartY+9);  printf("Please input your name(less than 10):");
-    INPUTNAME: setCursor(logStartX, logStartY+11); isCursorDisplay(true); std::cin >> username;
+    setCursor(logStartX, logStartY+1);  printf("Welcome to TetrisConsole!");
+    setCursor(logStartX, logStartY+3);  printf("use [↑] to rotate.");
+    setCursor(logStartX, logStartY+4);  printf("use [←] and [→] to move left or right.");
+    setCursor(logStartX, logStartY+5);  printf("use [↓] to  accelerate the decent.");
+    setCursor(logStartX, logStartY+6);  printf("use [SPACE] to swap now and next.");
+    setCursor(logStartX, logStartY+8);  printf("Please input your name(less than 10): ");
+    INPUTNAME: isCursorDisplay(true); std::cin >> username;
     if (username.length()>=10) {
-        setCursor(logStartX, logStartY+9); printf("Name too long. Try again(less than 10):");
+        setCursor(logStartX, logStartY+8); std::cout << empStr;
+        setCursor(logStartX, logStartY+8); printf("Name too long. Try again(less than 10): ");
         goto INPUTNAME;
-    }
-    setCursor(logStartX, logStartY+13); printf("Press [S] to start. Enjoy Yourself!");
+    } setCursor(logStartX, logStartY+10); printf("Ranking: ");
+    readRankList(); updateRankList(); drawRankList(logStartX+9, logStartY+10, 5); fontColorReset();
 
+    setCursor(logStartX, logStartY+16); printf("Press [S] to start. Enjoy Yourself!");
     isCursorDisplay(false); drawName ();
+
     while (!_kbhit() || (_getch()^'s')) Sleep(100);
 
     for (register int i=0; i^17; ++ i) {setCursor(logStartX, logStartY+i); cout << empStr;};
