@@ -124,10 +124,12 @@ const vector <pair<int, int> > dMap[24] = {
 #define maxl 24
 #define maxh 26
 
+#define downinterval 50
+
 unsigned int seed = 19260817;
 
 inline int rotate (int);
-#define setCursor(x,y); {COORD tmpSC; tmpSC.X=x, tmpSC.Y=y; SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), tmpSC);}
+#define setCursor(x,y); {COORD tmpSC;tmpSC.X=x,tmpSC.Y=y;SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE),tmpSC);}
 inline void isCursorDisplay(bool);
 inline void setColor (int);
 
@@ -158,7 +160,7 @@ inline void drawPrediction (int, bool);
 inline void drawLog (string);
 
 #define fontColorReset() SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7)
-#define placeLegal() ((~tmpx)&&(tmpx<25)&&(~tmpy)&&(tmpy<13)&&!vis[tmpx][tmpy])
+#define placeLegal() ((~tmpx) && (tmpx<25) && (~tmpy) && (tmpy<13) && !vis[tmpx][tmpy])
 inline bool placeJudge (int, int, int);
 
 bool vis[28][16];
@@ -207,9 +209,14 @@ signed main () {
     startTime = clock();
     drawLog("[sys] Game Start.");
 
+    register bool lastDownOptionClear = false;
+    register bool lastDownOption = false;
+    register int  totalFreezeCounter = 2;
+
     while (true) {
-        if (timer>=interval) {
-            timer = 0;
+        if (timer >= downinterval) lastDownOptionClear = false;
+        if (timer >= interval) {
+            timer = lastDownOptionClear = lastDownOption = 0;
             if (cntDown > 2) {
                 sprintf(buff, "[dat] Score inc by %d because of [↓] bonus.", (int)log(cntDown));
                 logStr.assign(buff); drawLog(logStr); score += (int)log(cntDown);
@@ -223,11 +230,12 @@ signed main () {
                 if (cntDown > 2) {
                     sprintf(buff, "[dat] Score inc by %d because of [↓] bonus.", (int)log(cntDown));
                     logStr.assign(buff); drawLog(logStr); score += (int)log(cntDown);
-                } cntDown = 1;
+                } cntDown = 1; timer = 0;
+                lastDownOptionClear = lastDownOption;
                 sprintf(buff, "[sys] Tetris %d frozen at (%d, %d).", steins, nowx, nowy);
                 logStr.assign(buff); drawLog(logStr); register int tmpx, tmpy;
-                sprintf(buff, "[dat] Score increased by %d.", 305-interval);
-                logStr.assign(buff); drawLog(logStr); score += (305 - interval);
+                sprintf(buff, "[dat] Score increased by %d.", (305-interval)*(int)log(++ totalFreezeCounter));
+                logStr.assign(buff); drawLog(logStr); score += (305-interval)*(int)log(totalFreezeCounter);
                 auto iter = dMap[steins].cbegin();
                 for (; iter != dMap[steins].cend(); ++ iter) {
                     tmpx = nowx + iter->first;
@@ -270,9 +278,9 @@ signed main () {
 
                     if (clrCnt) {
                         sprintf(buff, "[dat] Score inc by %d because of clearing %d levels.",\
-                            (300 - interval) << clrCnt, clrCnt);
+                            ((300 - interval) << clrCnt)*(int)log(totalFreezeCounter), clrCnt);
                         logStr.assign(buff); drawLog(logStr);
-                        score += (300 - interval) << clrCnt;
+                        score += ((300 - interval) << clrCnt)*(int)log(totalFreezeCounter);
                     } drawData(); drawLogo();
                 }
 
@@ -292,6 +300,7 @@ signed main () {
 
         register int key;
         if(_kbhit()) if((key=_getch()) ^ PRE) {
+            lastDownOption = lastDownOptionClear = false;
             if (!(key^SP)&&placeJudge(kurisu,nowx,nowy)&&(steins^kurisu)) {
                 sprintf(buff, "[key] Key [SPACE] triggered, change %d to %d.", steins, kurisu);
                 logStr.assign(buff); drawLog(logStr);
@@ -313,6 +322,7 @@ signed main () {
             key = _getch();
             switch(key) {
                 case UP:
+                    lastDownOption = lastDownOptionClear = false;
                     if (cntDown > 2) {
                         sprintf(buff, "[dat] Score inc by %d because of [↓] bonus.", (int)log(cntDown));
                         logStr.assign(buff); drawLog(logStr); score += (int)log(cntDown);
@@ -327,6 +337,7 @@ signed main () {
                         drawLog("[key] Key [↑] triggered but unable to rotate.");
                     } break;
                 case LT:
+                    lastDownOption = lastDownOptionClear = false;
                     if (cntDown > 2) {
                         sprintf(buff, "[dat] Score inc by %d because of [↓] bonus.", (int)log(cntDown));
                         logStr.assign(buff); drawLog(logStr); score += (int)log(cntDown);
@@ -340,6 +351,7 @@ signed main () {
                         drawLog("[key] Key [←] triggered but unable to move.");
                     } break;
                 case RT:
+                    lastDownOption = lastDownOptionClear = false;
                     if (cntDown > 2) {
                         sprintf(buff, "[dat] Score inc by %d because of [↓] bonus.", (int)log(cntDown));
                         logStr.assign(buff); drawLog(logStr); score += (int)log(cntDown);
@@ -353,12 +365,14 @@ signed main () {
                         drawLog("[key] Key [→] triggered but unable to move.");
                     } break;
                 case DW:
-                    if (placeJudge(steins, nowx+1, nowy)) {
-                        drawTetris(steins, nowx ++, nowy, true);
-                        drawTetris(steins, nowx, nowy, false);
-                        ++ cntDown; drawData();
-                        goto DROPTEST;
-                    } goto BLOCKFREEZE; break;
+                    if (!lastDownOptionClear) {
+                        if (placeJudge(steins, nowx+1, nowy)) {
+                            drawTetris(steins, nowx ++, nowy, true);
+                            drawTetris(steins, nowx, nowy, false);
+                            ++ cntDown; drawData(); lastDownOption = true;
+                            goto DROPTEST;
+                        } goto BLOCKFREEZE;
+                    } break;
             }
         } Sleep(1); ++ timer;
         if (clock()-startTime >= 9999990) drawYouWin();
