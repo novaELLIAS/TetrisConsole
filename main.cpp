@@ -433,11 +433,11 @@ inline bool cmp (rankElement a, rankElement b) {
 }
 
 inline void updateRankList () {
-    register int listLen = 0, pos = 0;
+    register int listLen = -1, pos = 0;
     while (true) {
         if (rankList[listLen].name == username) pos = listLen;
         if (rankList[listLen].name == "") break; ++ listLen;
-    } if (pos >= 0) pos = listLen; else -- listLen;
+    } if (pos == -1) pos = listLen; else -- listLen;
     rankList[pos] = (rankElement){username, max(rankList[pos].score, score)};
     std::sort(rankList+0, rankList+listLen+1, cmp);
 }
