@@ -437,7 +437,7 @@ inline void updateRankList () {
     while (true) {
         if (rankList[listLen].name == username) pos = listLen;
         if (rankList[listLen].name == "") break; ++ listLen;
-    } if (!pos) pos = listLen; else -- listLen;
+    } if (pos >= 0) pos = listLen; else -- listLen;
     rankList[pos] = (rankElement){username, max(rankList[pos].score, score)};
     std::sort(rankList+0, rankList+listLen+1, cmp);
 }
@@ -580,7 +580,7 @@ inline void endGame (bool isWin) {
     fontColorReset(); setCursor(logStartX, logStartY);printf(isWin? "Congratulations!! You win.":"Game Over!");
     setCursor(logStartX, logStartY+2); printf("Your score is: %lld", score);
     setCursor(logStartX, logStartY+4); printf("Ranking: ");
-    readRankList(); drawRankList(logStartX+9, logStartY+5, 10); fontColorReset();
+    drawRankList(logStartX+9, logStartY+5, 10); fontColorReset();
 
     setCursor(logStartX, logStartY+16) printf("Please press [Q] to quit.");
     drawUI(); while (!_kbhit()||(_getch()^'q')) Sleep(100);
