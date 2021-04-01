@@ -433,7 +433,7 @@ inline bool cmp (rankElement a, rankElement b) {
 }
 
 inline void updateRankList () {
-    register int listLen = -1, pos = 0;
+    register int listLen = 0, pos = -1;
     while (true) {
         if (rankList[listLen].name == username) pos = listLen;
         if (rankList[listLen].name == "") break; ++ listLen;
@@ -578,7 +578,8 @@ inline void endGame (bool isWin) {
     for (register int i=0; i^17; ++ i) {setCursor(logStartX, logStartY + i); std::cout << empStr;}
 
     fontColorReset(); setCursor(logStartX, logStartY);printf(isWin? "Congratulations!! You win.":"Game Over!");
-    setCursor(logStartX, logStartY+2); printf("Your score is: %lld", score);
+    setCursor(logStartX, logStartY+2); printf("Your score is: ");
+    setColor(3); printf("%lld", score); fontColorReset();
     setCursor(logStartX, logStartY+4); printf("Ranking: ");
     drawRankList(logStartX+9, logStartY+5, 10); fontColorReset();
 
