@@ -199,6 +199,7 @@ signed main () {
     //ios::sync_with_stdio(false);
 
     srand(time(NULL));
+    SetConsoleTitle("TetrisConsole v2.00 PRAGMATISM");
     isCursorDisplay(false);
 
     drawUI();
