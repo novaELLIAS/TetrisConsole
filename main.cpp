@@ -138,15 +138,44 @@ const vector <pair<int, int> > dMap[28] = {
     {MP(0, 0), MP(0, 1)}
 };
 
-const pair<int, int> ptnMap[8] = {
-        MP(0, 2), MP(2, 1), MP(3, 4), MP(7, 4), MP(11, 4),
-        MP(15, 2), MP(17, 2), MP(19, 9)
-};
+class ID_generator {
+private:
 
-inline int getNewID () {
-    register int rnd = (rand() % 8 + 8) % 8;
-    return ptnMap[rnd].first + (rand() % ptnMap[rnd].second + ptnMap[rnd].second) % ptnMap[rnd].second;
-}
+    const pair<int, int> ptnMap[8] = {
+            MP(0, 2), MP(2, 1), MP(3, 4), MP(7, 4), MP(11, 4),
+            MP(15, 2), MP(17, 2), MP(19, 9)
+    };
+
+    queue<int> idQue;
+
+    struct node {
+        int data, index;
+        bool operator < (const node &b) const {
+            return index < b.index;
+        }
+    } workQue[8];
+
+    inline void addNewElement() {
+        for (register int i=0; i^8; ++ i) workQue[i] = (node){i, rand()};
+        sort (workQue, workQue + 8);
+        for (register int i=0; i^8; ++ i) idQue.push(workQue[i].data);
+    }
+
+public:
+
+    inline void init() {
+        while (!idQue.empty()) idQue.pop();
+        srand(time(NULL)); addNewElement();
+    }
+
+    inline int getNewID () {
+
+        register int id = idQue.front(); idQue.pop();
+        if (idQue.size() <= 8) addNewElement();
+        return ptnMap[id].first + (rand() % ptnMap[id].second + ptnMap[id].second) % ptnMap[id].second;
+    }
+} idGenerator;
+
 
 #define maxl 24
 #define maxh 26
@@ -225,16 +254,18 @@ signed main () {
     //ios::sync_with_stdio(false);
 
     srand(time(NULL));
+
     SetConsoleTitle("TetrisConsole v3.00 Fracture Ray");
     isCursorDisplay(false);
 
+    idGenerator.init();
     drawUI();
     drawLogo();
     drawWelcome();
 
-    do steins = getNewID(); //(rand() + 24) % 24;
+    do steins = idGenerator.getNewID(); //(rand() + 24) % 24;
     while (steins>=15 && steins<=18);
-    kurisu = getNewID(); //(rand() + 24) % 24;
+    kurisu = idGenerator.getNewID(); //(rand() + 24) % 24;
 
     drawTetris(kurisu, 5, 16, false);
     drawTetris(steins, nowx, nowy, false);
@@ -326,7 +357,7 @@ signed main () {
                 sprintf(buff, "[sys] New tetris %d generated.", kurisu);
                 logStr.assign(buff); drawLog(logStr);
 
-                steins = kurisu; kurisu = getNewID(); //(rand() + 24) % 24;
+                steins = kurisu; kurisu = idGenerator.getNewID(); //(rand() + 24) % 24;
                 drawTetris(steins, 5, 16, true);
                 drawTetris(kurisu, 5, 16, false);
                 nowx = 0, nowy = 5;
