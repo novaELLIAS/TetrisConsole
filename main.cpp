@@ -98,11 +98,6 @@ const vector <pair<int, int> > dMap[28] = {
 
     {MP(0, 0), MP(1, 0), MP(0, 1), MP(1, 1)},
 
-//    {MP(0, 0), MP(1, 0), MP(1, 1), MP(1, 2)},
-//    {MP(0, 1), MP(1, 1), MP(2, 0), MP(2, 1)},
-//    {MP(0, 0), MP(0, 1), MP(0, 2), MP(1, 2)},
-//    {MP(0, 0), MP(0, 1), MP(1, 0), MP(2, 0)},
-
     {MP(0, 0), MP(1, 0), MP(0, 1), MP(0, 2)},
     {MP(0, 0), MP(1, 0), MP(2, 0), MP(2, 1)},
     {MP(0, 2), MP(1, 0), MP(1, 1), MP(1, 2)},
@@ -175,7 +170,6 @@ public:
         return ptnMap[id].first + (rand() % ptnMap[id].second + ptnMap[id].second) % ptnMap[id].second;
     }
 } idGenerator;
-
 
 #define maxl 24
 #define maxh 26
