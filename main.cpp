@@ -123,6 +123,18 @@ const vector <pair<int, int> > dMap[24] = {
     {MP(0, 0), MP(0, 1)}
 };
 
+const pair<int, int> ptnMap[7] = {
+        MP(0, 2), MP(2, 1), MP(3, 4), MP(7, 4), MP(11, 2),
+        MP(13, 2), MP(15, 9)
+};
+
+
+
+inline int getNewID () {
+    register int rnd = (rand() % 7 + 7) % 7;
+    return ptnMap[rnd].first + (rand() % ptnMap[rnd].second + ptnMap[rnd].second) % ptnMap[rnd].second;
+}
+
 #define maxl 24
 #define maxh 26
 
@@ -193,22 +205,23 @@ string username;
 
 int top = 25, nowx, nowy = 5, steins, kurisu, interval=300, cntDown=1;
 long long score, chBase = 1ll;
+int preName = -1, prex, prey;
 char buff[1001];
 
 signed main () {
     //ios::sync_with_stdio(false);
 
     srand(time(NULL));
-    SetConsoleTitle("TetrisConsole v2.00 PRAGMATISM");
+    SetConsoleTitle("TetrisConsole v3.00 Fracture Ray");
     isCursorDisplay(false);
 
     drawUI();
     drawLogo();
     drawWelcome();
 
-    do steins = (rand() + 24) % 24;
+    do steins = getNewID(); //(rand() + 24) % 24;
     while (steins>=11 && steins<=14);
-    kurisu = (rand() + 24) % 24;
+    kurisu = getNewID(); //(rand() + 24) % 24;
 
     drawTetris(kurisu, 5, 16, false);
     drawTetris(steins, nowx, nowy, false);
@@ -231,7 +244,7 @@ signed main () {
         if (timer >= interval) {
             timer = lastDownOptionClear = lastDownOption = 0;
             if (cntDown > 2) {
-                sprintf(buff, "[dat] Score inc by %d because of [↓] bonus.", (int)log(cntDown));
+                sprintf(buff, "[dat] Score inc by %d because of decent acce bonus.", (int)log(cntDown));
                 logStr.assign(buff); drawLog(logStr); score += (int)log(cntDown);
             } cntDown = 1; drawData(); DROPTEST:
             if (placeJudge(steins, nowx + 1, nowy)) {
@@ -241,7 +254,7 @@ signed main () {
             } else {
                 BLOCKFREEZE:
                 if (cntDown > 2) {
-                    sprintf(buff, "[dat] Score inc by %d because of [↓] bonus.", (int)log(cntDown));
+                    sprintf(buff, "[dat] Score inc by %d because of decent acce bonus.", (int)log(cntDown));
                     logStr.assign(buff); drawLog(logStr); score += (int)log(cntDown);
                 } cntDown = 1; timer = 0;
                 lastDownOptionClear = lastDownOption;
@@ -300,7 +313,7 @@ signed main () {
                 sprintf(buff, "[sys] New tetris %d generated.", kurisu);
                 logStr.assign(buff); drawLog(logStr);
 
-                steins = kurisu; kurisu = (rand() + 24) % 24;
+                steins = kurisu; kurisu = getNewID(); //(rand() + 24) % 24;
                 drawTetris(steins, 5, 16, true);
                 drawTetris(kurisu, 5, 16, false);
                 nowx = 0, nowy = 5;
@@ -314,22 +327,29 @@ signed main () {
         register int key;
         if(_kbhit()) if((key=_getch()) ^ PRE) {
             lastDownOption = lastDownOptionClear = false;
-            if (!(key^SP)&&placeJudge(kurisu,nowx,nowy)&&(steins^kurisu)) {
-                sprintf(buff, "[key] Key [SPACE] triggered, change %d to %d.", steins, kurisu);
-                logStr.assign(buff); drawLog(logStr);
-                drawTetris(steins, nowx, nowy, true);
-                drawTetris(kurisu, 5, 16, true);
-                steins^=kurisu^=steins^=kurisu;
-                drawPrediction(steins, true);
-                drawTetris(steins, nowx, nowy, false);
-                drawTetris(kurisu, 5, 16, false);
-                if (cntDown > 2) {
-                    sprintf(buff, "[dat] Score inc by %d because of [↓] bonus.", (int)log(cntDown));
-                    logStr.assign(buff); drawLog(logStr); score += (int)log(cntDown);
-                } sprintf(buff, "[dat] Score dec by 2^%d because of using [SPACE].", (int)log(chBase<<=1));
-                logStr.assign(buff); drawLog(logStr); score -= chBase; cntDown = 1;
-                sprintf(buff, "[dat] Interval decreased because of using [SPACE].");
-                logStr.assign(buff); drawLog(logStr); interval=(int)(interval*0.99); drawData();
+            switch(key) {
+                case 'r':
+                    if (placeJudge(kurisu, nowx, nowy) && (steins ^ kurisu)) {
+                        sprintf(buff, "[key] Key [R] triggered, change %d to %d.", steins, kurisu);
+                        logStr.assign(buff); drawLog(logStr);
+                        drawTetris(steins, nowx, nowy, true);
+                        drawTetris(kurisu, 5, 16, true);
+                        steins ^= kurisu ^= steins ^= kurisu;
+                        drawPrediction(steins, true);
+                        drawTetris(steins, nowx, nowy, false);
+                        drawTetris(kurisu, 5, 16, false);
+                        if (cntDown > 2) {
+                            sprintf(buff, "[dat] Score inc by %d because of decent acce bonus.", (int) log(cntDown));
+                            logStr.assign(buff); drawLog(logStr); score += (int) log(cntDown);
+                        }
+                        sprintf(buff, "[dat] Score dec by 2^%d because of using [R].", (int) log(chBase <<= 1));
+                        logStr.assign(buff); drawLog(logStr); score -= chBase; cntDown = 1;
+                        sprintf(buff, "[dat] Interval decreased because of using [R].");
+                        logStr.assign(buff); drawLog(logStr); interval = (int) (interval * 0.99);drawData();
+                    } break;
+
+                case SP:
+                    cntDown += (prex-nowx)<<1; drawTetris(steins, nowx, nowy, true); nowx=prex; goto BLOCKFREEZE; break;
             }
         } else {
             key = _getch();
@@ -337,7 +357,7 @@ signed main () {
                 case UP:
                     lastDownOption = lastDownOptionClear = false;
                     if (cntDown > 2) {
-                        sprintf(buff, "[dat] Score inc by %d because of [↓] bonus.", (int)log(cntDown));
+                        sprintf(buff, "[dat] Score inc by %d because of decent acce bonus.", (int)log(cntDown));
                         logStr.assign(buff); drawLog(logStr); score += (int)log(cntDown);
                     } cntDown = 1; drawData(); if (placeJudge(rotate(steins), nowx, nowy)) {
                         sprintf(buff, "[key] Key [↑] triggered, change %d to %d.", steins, rotate(steins));
@@ -352,7 +372,7 @@ signed main () {
                 case LT:
                     lastDownOption = lastDownOptionClear = false;
                     if (cntDown > 2) {
-                        sprintf(buff, "[dat] Score inc by %d because of [↓] bonus.", (int)log(cntDown));
+                        sprintf(buff, "[dat] Score inc by %d because of decent acce bonus.", (int)log(cntDown));
                         logStr.assign(buff); drawLog(logStr); score += (int)log(cntDown);
                     } cntDown = 1; drawData(); if (placeJudge(steins, nowx, nowy-1)) {
                         //sprintf(buff, "[key] Key [←] triggered, x changed from %d to %d.", nowy, nowy-1);
@@ -366,7 +386,7 @@ signed main () {
                 case RT:
                     lastDownOption = lastDownOptionClear = false;
                     if (cntDown > 2) {
-                        sprintf(buff, "[dat] Score inc by %d because of [↓] bonus.", (int)log(cntDown));
+                        sprintf(buff, "[dat] Score inc by %d because of decent acce bonus.", (int)log(cntDown));
                         logStr.assign(buff); drawLog(logStr); score += (int)log(cntDown);
                     } cntDown = 1; drawData(); if (placeJudge(steins, nowx, nowy+1)) {
                         //sprintf(buff, "[key] Key [→] triggered, x changed from %d to %d.", nowy, nowy+1);
@@ -387,7 +407,7 @@ signed main () {
                         } goto BLOCKFREEZE;
                     } break;
             }
-        } Sleep(1); ++ timer;
+        } Sleep(1); ++ timer; drawScore();
         if (clock()-startTime >= 9999990) endGame(true);
     } system("pause"); return 0;
 }
@@ -517,8 +537,6 @@ inline void drawName () {
     std::cout << username; return;
 }
 
-int preName = -1, prex, prey;
-
 inline void drawPrediction (int name, bool isClr) {
     register int tmpx, tmpy;
     auto iter = dMap[preName].begin();
@@ -626,8 +644,8 @@ inline void drawWelcome () {
     setCursor(logStartX, logStartY+1);  printf("Welcome to TetrisConsole!");
     setCursor(logStartX, logStartY+3);  printf("use [↑] to rotate.");
     setCursor(logStartX, logStartY+4);  printf("use [←] and [→] to move left or right.");
-    setCursor(logStartX, logStartY+5);  printf("use [↓] to  accelerate the decent.");
-    setCursor(logStartX, logStartY+6);  printf("use [SPACE] to swap now and next.");
+    setCursor(logStartX, logStartY+5);  printf("use [↓] to accelerate the decent while [SPACE] to set.");
+    setCursor(logStartX, logStartY+6);  printf("use [R] to swap now and next.");
     setCursor(logStartX, logStartY+8);  printf("Please input your name(less than 10): ");
     INPUTNAME: isCursorDisplay(true); std::cin >> username;
     if (username.length()>=10) {
@@ -637,10 +655,10 @@ inline void drawWelcome () {
     } setCursor(logStartX, logStartY+10); printf("Ranking: ");
     readRankList(); updateRankList(); drawRankList(logStartX+9, logStartY+10, 5); fontColorReset();
 
-    setCursor(logStartX, logStartY+16); printf("Press [S] to start. Enjoy Yourself!");
+    setCursor(logStartX, logStartY+16); printf("Press [E] to start. Enjoy Yourself!");
     isCursorDisplay(false); drawName ();
 
-    while (!_kbhit() || (_getch()^'s')) Sleep(100);
+    while (!_kbhit() || (_getch()^'e')) Sleep(100);
 
     for (register int i=0; i^17; ++ i) {setCursor(logStartX, logStartY+i); cout << empStr;};
 }
