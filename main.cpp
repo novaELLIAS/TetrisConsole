@@ -36,29 +36,34 @@ using namespace std;
 #define c3 5
 #define c4 6
 
-#define d1 7
-#define d2 8
-#define d3 9
-#define d4 10
+#define n1 7
+#define n2 8
+#define n3 9
+#define n4 10
 
-#define e1 11
-#define e2 12
+#define d1 11
+#define d2 12
+#define d3 13
+#define d4 14
 
-#define f1 13
-#define f2 14
+#define e1 15
+#define e2 16
 
-#define g1 15
+#define f1 17
+#define f2 18
 
-#define h1 16
-#define h2 17
-#define h3 18
-#define h4 19
+#define g1 19
 
-#define k1 20
-#define k2 21
+#define h1 20
+#define h2 21
+#define h3 22
+#define h4 23
 
-#define m1 22
-#define m2 23
+#define k1 24
+#define k2 25
+
+#define m1 26
+#define m2 27
 
 #define PRE 224
 #define UP  72
@@ -84,14 +89,24 @@ const int dMapOrigin[24][9] = {
 };
 */
 
-int height[24] = {4, 1, 2, 2, 3, 2, 3, 2, 3, 2, 3, 2, 3, 2, 3, 1, 2, 2, 2, 2, 1, 3, 2, 1};
+int height[28] = {4, 1, 2, 2, 3, 2, 3, 2, 3, 2, 3, 2, 3, 2, 3, 2, 3, 2, 3, 1, 2, 2, 2, 2, 1, 3, 2, 1};
 
-const vector <pair<int, int> > dMap[24] = {
+const vector <pair<int, int> > dMap[28] = {
 
     {MP(0, 0), MP(1, 0), MP(2, 0), MP(3, 0)},
     {MP(0, 0), MP(0, 1), MP(0, 2), MP(0, 3)},
 
     {MP(0, 0), MP(1, 0), MP(0, 1), MP(1, 1)},
+
+//    {MP(0, 0), MP(1, 0), MP(1, 1), MP(1, 2)},
+//    {MP(0, 1), MP(1, 1), MP(2, 0), MP(2, 1)},
+//    {MP(0, 0), MP(0, 1), MP(0, 2), MP(1, 2)},
+//    {MP(0, 0), MP(0, 1), MP(1, 0), MP(2, 0)},
+
+    {MP(0, 0), MP(1, 0), MP(0, 1), MP(0, 2)},
+    {MP(0, 0), MP(1, 0), MP(2, 0), MP(2, 1)},
+    {MP(0, 2), MP(1, 0), MP(1, 1), MP(1, 2)},
+    {MP(0, 0), MP(0, 1), MP(1, 1), MP(2, 1)},
 
     {MP(0, 0), MP(1, 0), MP(1, 1), MP(1, 2)},
     {MP(0, 1), MP(1, 1), MP(2, 0), MP(2, 1)},
@@ -123,15 +138,13 @@ const vector <pair<int, int> > dMap[24] = {
     {MP(0, 0), MP(0, 1)}
 };
 
-const pair<int, int> ptnMap[7] = {
-        MP(0, 2), MP(2, 1), MP(3, 4), MP(7, 4), MP(11, 2),
-        MP(13, 2), MP(15, 9)
+const pair<int, int> ptnMap[8] = {
+        MP(0, 2), MP(2, 1), MP(3, 4), MP(7, 4), MP(11, 4),
+        MP(15, 2), MP(17, 2), MP(19, 9)
 };
 
-
-
 inline int getNewID () {
-    register int rnd = (rand() % 7 + 7) % 7;
+    register int rnd = (rand() % 8 + 8) % 8;
     return ptnMap[rnd].first + (rand() % ptnMap[rnd].second + ptnMap[rnd].second) % ptnMap[rnd].second;
 }
 
@@ -220,7 +233,7 @@ signed main () {
     drawWelcome();
 
     do steins = getNewID(); //(rand() + 24) % 24;
-    while (steins>=11 && steins<=14);
+    while (steins>=15 && steins<=18);
     kurisu = getNewID(); //(rand() + 24) % 24;
 
     drawTetris(kurisu, 5, 16, false);
@@ -733,6 +746,11 @@ inline int rotate (int name) {
         case c2: return c3;
         case c3: return c4;
         case c4: return c1;
+
+        case n1: return n2;
+        case n2: return n3;
+        case n3: return n4;
+        case n4: return n1;
 
         case d1: return d2;
         case d2: return d3;
