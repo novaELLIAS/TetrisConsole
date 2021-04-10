@@ -150,25 +150,13 @@ private:
         }
     } workQue[8];
 
-    inline void addNewElement() {
-        for (register int i=0; i^8; ++ i) workQue[i] = (node){i, rand()};
-        sort (workQue, workQue + 8);
-        for (register int i=0; i^8; ++ i) idQue.push(workQue[i].data);
-    }
+    inline void addNewElement();
 
 public:
 
-    inline void init() {
-        while (!idQue.empty()) idQue.pop();
-        srand(time(NULL)); addNewElement();
-    }
+    inline void init();
+    inline int getNewID();
 
-    inline int getNewID () {
-
-        register int id = idQue.front(); idQue.pop();
-        if (idQue.size() <= 8) addNewElement();
-        return ptnMap[id].first + (rand() % ptnMap[id].second + ptnMap[id].second) % ptnMap[id].second;
-    }
 } idGenerator;
 
 #define maxl 24
@@ -362,7 +350,7 @@ signed main () {
             }
         }
 
-        register int key;
+        register int key; KEYCHECK:
         if(_kbhit()) if((key=_getch()) ^ PRE) {
             lastDownOption = lastDownOptionClear = false;
             switch(key) {
@@ -384,10 +372,11 @@ signed main () {
                         logStr.assign(buff); drawLog(logStr); score -= chBase; cntDown = 1;
                         sprintf(buff, "[dat] Interval decreased because of using [R].");
                         logStr.assign(buff); drawLog(logStr); interval = (int) (interval * 0.99);drawData();
-                    } break;
+                    } goto KEYCHECK; break;
 
                 case SP:
-                    cntDown += (prex-nowx)<<1; drawTetris(steins, nowx, nowy, true); nowx=prex; goto BLOCKFREEZE; break;
+                    cntDown += (prex-nowx)<<1; drawTetris(steins, nowx, nowy, true); nowx=prex; goto BLOCKFREEZE;
+                    goto KEYCHECK; break;
             }
         } else {
             key = _getch();
@@ -404,6 +393,7 @@ signed main () {
                         steins = rotate(steins);
                         drawPrediction(steins, true);
                         drawTetris(steins, nowx, nowy, false);
+                        goto KEYCHECK;
                     } else {
                         drawLog("[key] Key [↑] triggered but unable to rotate.");
                     } break;
@@ -418,6 +408,7 @@ signed main () {
                         drawTetris(steins, nowx, nowy --, true);
                         drawPrediction(steins, true);
                         drawTetris(steins, nowx, nowy, false);
+                        goto KEYCHECK;
                     } else {
                         drawLog("[key] Key [←] triggered but unable to move.");
                     } break;
@@ -432,6 +423,7 @@ signed main () {
                         drawTetris(steins, nowx, nowy ++, true);
                         drawPrediction(steins, true);
                         drawTetris(steins, nowx, nowy, false);
+                        goto KEYCHECK;
                     } else {
                         drawLog("[key] Key [→] triggered but unable to move.");
                     } break;
@@ -861,4 +853,21 @@ inline void drawLogo () {
             printf(flag? (rand()%3? "□":"■"):"  ");
         }
     }
+}
+
+inline void ID_generator::addNewElement() {
+    for (register int i=0; i^8; ++ i) workQue[i] = (node){i, rand()};
+    sort (workQue, workQue + 8);
+    for (register int i=0; i^8; ++ i) idQue.push(workQue[i].data);
+}
+
+inline void ID_generator::init() {
+    while (!idQue.empty()) idQue.pop();
+    srand(time(NULL)); addNewElement();
+}
+
+inline int ID_generator::getNewID () {
+    register int id = idQue.front(); idQue.pop();
+    if (idQue.size() <= 8) addNewElement();
+    return ptnMap[id].first + (rand() % ptnMap[id].second + ptnMap[id].second) % ptnMap[id].second;
 }

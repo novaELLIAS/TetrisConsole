@@ -1,3 +1,3 @@
-"C:\Program Files\JetBrains\CLion 2020.3.1\bin\cmake\win\bin\cmake.exe" -E rm -f CMakeFiles\TetrisConsole.dir/objects.a
+C:\Users\Etern\AppData\Local\JetBrains\Toolbox\apps\CLion\ch-0\211.6693.114\bin\cmake\win\bin\cmake.exe -E rm -f CMakeFiles\TetrisConsole.dir/objects.a
 C:\PROGRA~1\MINGW-~1\X86_64~1.0-P\mingw64\bin\ar.exe cr CMakeFiles\TetrisConsole.dir/objects.a @CMakeFiles\TetrisConsole.dir\objects1.rsp
 C:\PROGRA~1\MINGW-~1\X86_64~1.0-P\mingw64\bin\G__~1.EXE -O3 -DNDEBUG -Wl,--whole-archive CMakeFiles\TetrisConsole.dir/objects.a -Wl,--no-whole-archive -o TetrisConsole.exe -Wl,--out-implib,libTetrisConsole.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\TetrisConsole.dir\linklibs.rsp
