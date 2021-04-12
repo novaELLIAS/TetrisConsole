@@ -238,6 +238,8 @@ signed main () {
     srand(time(NULL));
 
     SetConsoleTitle("TetrisConsole v3.00 Fracture Ray");
+    system("mode con cols=123 lines=30");
+    system("cls");
     isCursorDisplay(false);
 
     idGenerator.init();
