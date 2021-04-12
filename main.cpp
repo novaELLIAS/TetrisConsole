@@ -754,6 +754,7 @@ inline void drawUI () {
     setCursor(0, 28); printf("GitHub Issue: TetrisConsole");
 }
 
+/*
 inline int rotate (int name) {
     switch (name) {
         case a1: return a2;
@@ -795,6 +796,69 @@ inline int rotate (int name) {
         case m1: return m2;
         case m2: return m1;
     } return -1;
+}
+*/
+
+inline int rotate (int name) {
+
+    register int nameRet;
+
+    switch (name) {
+        case a1: nameRet = a2; break;
+        case a2: nameRet = a1; break;
+
+        case b1: nameRet = b1; break;
+
+        case c1: nameRet = c2; break;
+        case c2: nameRet = c3; break;
+        case c3: nameRet = c4; break;
+        case c4: nameRet = c1; break;
+
+        case n1: nameRet = n2; break;
+        case n2: nameRet = n3; break;
+        case n3: nameRet = n4; break;
+        case n4: nameRet = n1; break;
+
+        case d1: nameRet = d2; break;
+        case d2: nameRet = d3; break;
+        case d3: nameRet = d4; break;
+        case d4: nameRet = d1; break;
+
+        case e1: nameRet = e2; break;
+        case e2: nameRet = e1; break;
+
+        case f1: nameRet = f2; break;
+        case f2: nameRet = f1; break;
+
+        case g1: nameRet = g1; break;
+
+        case h1: nameRet = h2; break;
+        case h2: nameRet = h3; break;
+        case h3: nameRet = h4; break;
+        case h4: nameRet = h1; break;
+
+        case k1: nameRet = k2; break;
+        case k2: nameRet = k1; break;
+
+        case m1: nameRet = m2; break;
+        case m2: nameRet = m1; break;
+    }
+
+    static const pair<int, int> ddp[8] = {MP(0, 1), MP(0, -1), MP(-1, 0),\
+		MP(-1, 1), MP(-1, -1), MP(0, -2), MP(0, -3), MP(0, -4)};
+
+    register int tmpx, tmpy;
+
+    if (!placeJudge(nameRet, nowx, nowy)) {
+        for (register int i=0; i^7; ++ i) {
+            tmpx = nowx + ddp[i].first,\
+			tmpy = nowy + ddp[i].second;
+            if (placeJudge(nameRet, tmpx, tmpy)) {
+                drawTetris(steins, nowx, nowy, true);
+                nowx = tmpx, nowy = tmpy; break;
+            }
+        }
+    } return nameRet;
 }
 
 inline void setColor (int color) {
