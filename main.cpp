@@ -388,7 +388,7 @@ signed main () {
                     if (cntDown > 2) {
                         sprintf(buff, "[dat] Score inc by %d because of decent acce bonus.", (int)log(cntDown));
                         logStr.assign(buff); drawLog(logStr); score += (int)log(cntDown);
-                    } cntDown = 1; drawData(); if (placeJudge(rotate(steins), nowx, nowy)) {
+                    } cntDown = 1; drawData(); rotate(steins); if (placeJudge(rotate(steins), nowx, nowy)) {
                         sprintf(buff, "[key] Key [↑] triggered, change %d to %d.", steins, rotate(steins));
                         logStr.assign(buff); drawLog(logStr);
                         drawTetris(steins, nowx, nowy, true);
