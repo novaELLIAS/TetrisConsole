@@ -7,6 +7,8 @@ For Course de Introduction to Data Structure and Algorithm Analysis, BUPT 2021.
 
 `tetrisRanking.dat` **must** be created in advanced to prevent runtime errors.
 
+## Statistics
+
 ![LICENSE](https://img.shields.io/github/license/novaELLIAS/TetrisConsole)
 ![issues](https://img.shields.io/github/issues/novaELLIAS/TetrisConsole)
 ![top language](https://img.shields.io/github/languages/top/novaELLIAS/TetrisConsole)
