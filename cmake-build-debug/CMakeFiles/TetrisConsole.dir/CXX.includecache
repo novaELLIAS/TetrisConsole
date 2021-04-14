@@ -1,0 +1,32 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+C:/Users/Etern/CLionProjects/TetrisConsole/main.cpp
+iostream
+-
+cstdio
+-
+cmath
+-
+vector
+-
+string
+-
+queue
+-
+ctime
+-
+fstream
+-
+algorithm
+-
+windows.h
+-
+conio.h
+-
+

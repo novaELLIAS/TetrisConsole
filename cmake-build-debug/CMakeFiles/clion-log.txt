@@ -1,0 +1,4 @@
+C:\Users\Etern\AppData\Local\JetBrains\Toolbox\apps\CLion\ch-0\211.6693.114\bin\cmake\win\bin\cmake.exe -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - MinGW Makefiles" C:\Users\Etern\CLionProjects\TetrisConsole
+-- Configuring done
+-- Generating done
+-- Build files have been written to: C:/Users/Etern/CLionProjects/TetrisConsole/cmake-build-debug

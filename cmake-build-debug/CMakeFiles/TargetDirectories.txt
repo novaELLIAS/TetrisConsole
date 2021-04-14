@@ -1,0 +1,3 @@
+C:/Users/Etern/CLionProjects/TetrisConsole/cmake-build-debug/CMakeFiles/TetrisConsole.dir
+C:/Users/Etern/CLionProjects/TetrisConsole/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/Etern/CLionProjects/TetrisConsole/cmake-build-debug/CMakeFiles/rebuild_cache.dir
