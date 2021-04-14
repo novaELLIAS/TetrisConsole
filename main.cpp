@@ -237,7 +237,7 @@ signed main () {
 
     srand(time(NULL));
 
-    SetConsoleTitle("TetrisConsole v3.00 Fracture Ray");
+    SetConsoleTitle("TetrisConsole v3.21 World Vanquisher");
     system("mode con cols=123 lines=30");
     system("cls");
     isCursorDisplay(false);
